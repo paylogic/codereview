@@ -1,0 +1,11 @@
+BeautifulSoup==3.2.0
+django-gae2django==0.2paylogic2
+django-openid-auth==0.5paylogic4
+Django==1.3.7
+fogbugz==0.9.5
+lxml==2.3
+MySQL-python  # not pinned because of compartibility issues, as package might be system-wide installed
+python-openid==2.2.5google
+python-statsd==1.6.3
+raven==3.6.1
+subprocess32==3.2.5rc1

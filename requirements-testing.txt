@@ -1,0 +1,8 @@
+django-webtest==1.6.1
+importlib==1.0.3
+mock==1.0.1
+pyquery==1.2.4
+pytest-cache==1.0
+pytest-django==2.6
+pytest-pep8==1.0.5
+WebTest==1.4.3

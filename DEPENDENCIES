@@ -1,0 +1,7 @@
+# System package dependencies (apt)
+mercurial
+git-core
+bzr
+python
+python-virtualenv
+libxslt1-dev

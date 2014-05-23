@@ -1,0 +1,15 @@
+*.pyc
+*.bak
+settings_local.py
+/src/
+/paylogic/settings_paylogic_local.py
+/env/
+dev.db
+*.orig
+.DS_Store
+.cache
+/media/
+.nfs.*
+.tox/
+.coverage
+htmlcov/

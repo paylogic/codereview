@@ -1,0 +1,12 @@
+Migration changes
+-----------------
+
+4-feb-2014
+
+  ALTER TABLE codereview_patch ADD old_filename VARCHAR (500);
+
+
+8-jan-2013
+
+  ALTER TABLE codereview_patchset ADD revision VARCHAR (500);
+
