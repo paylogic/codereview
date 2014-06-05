@@ -216,6 +216,9 @@ def source_repo(
             vcs_commands['clone'] + [target_repo.strpath, path.strpath])
         subprocess.check_call(
             vcs_commands['branch'] + [source_repo_branch], cwd=path.strpath)
+    if 'config' in vcs_commands:
+        for commands in vcs_commands['config']:
+            subprocess.check_call(commands, cwd=path.strpath)
     path.join(source_test_file_name).open('w').write(source_test_file_content)
     path.join(target_test_file_name).open(
         'w').write(target_test_file_source_content)
