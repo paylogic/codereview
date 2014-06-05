@@ -93,6 +93,7 @@ def vcs_commands(vcs):
     return {
         'git': {
             'init': ['git', 'init'],
+            'config': ['git', 'config', 'user.name', 'testuser'],
             'add': ['git', 'add', '.'],
             'clone': ['git', 'clone'],
             'branch': ['git', 'checkout', '-b'],
@@ -143,6 +144,8 @@ def target_repo(
     path = repo_base_dir.join(target_repo_name)
     os.makedirs(path.strpath)
     subprocess.check_call(vcs_commands['init'] + [path.strpath])
+    if 'config' in vcs_commands:
+        subprocess.check_call(vcs_commands['config'] + [path.strpath])
     if vcs == 'bzr':
         path = path.join(target_repo_branch)
         subprocess.check_call(vcs_commands['init-branch'] + [path.strpath])
