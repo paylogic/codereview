@@ -17,7 +17,9 @@ develop: env
 	test -a paylogic/settings_local.py || cp paylogic/settings_local_example.py paylogic/settings_local.py
 	pip install -r requirements-testing.txt $(pip_args)
 	pip install -r requirements.txt $(pip_args)
-	python manage.py syncdb --noinput
+ifndef skip_syncdb
+	python manage.py syncdb
+endif
 
 test: env
 	pip install tox
@@ -28,7 +30,7 @@ coverage: develop
 
 coveralls:
 	pip install python-coveralls
-	make coverage cov_report=term-missing
+	make coverage cov_report=term-missing skip_syncdb=1
 	coveralls
 
 clean:
