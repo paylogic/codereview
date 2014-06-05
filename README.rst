@@ -105,38 +105,70 @@ This can be done by copying example one:
 
 The most important settings are:
 
-* DATABASES - see django documentation about it
+DATABASES
+   see django documentation about it
 
-* DEBUG - self-describing
+DEBUG
+   self-describing
 
-* VCS - dictionary of vcs-specific settings, folder prefix, regular expression of the branch definition, etc,
-  see `settings_base.py` config for an example
+VCS
+   dictionary of vcs-specific settings, folder prefix, regular expression of the branch definition, etc,
+   see `settings_base.py` config for an example
 
-* FEATURE_BRANCH_DEFAULT_PREFIX - prefix to try to add to feature branch value taken from fogbugz case field, allows to
-  shorten feature branch definition
+FEATURE_BRANCH_DEFAULT_PREFIX
+   prefix to try to add to feature branch value taken from fogbugz case field, allows to
+   shorten feature branch definition
 
-* ORIGINAL_BRANCH_DEFAULT_PREFIX - prefix to try to add to feature branch value taken from fogbugz case field, allows to
-  shorten feature branch definition
+ORIGINAL_BRANCH_DEFAULT_PREFIX
+   prefix to try to add to feature branch value taken from fogbugz case field, allows to
+   shorten feature branch definition
 
-* TEMP_FOLDER - temporary folder used to clone and export repositories
+TEMP_FOLDER
+   temporary folder used to clone and export repositories
 
-* FOGBUGZ_URL - URL of your fogbugz instance
-* FOGBUGZ_TOKEN - Fogbugz user API token to be used for Fogbugz API calls
+FOGBUGZ_URL
+   URL of your fogbugz instance
 
-* API_TOKEN = 'some-token' - authorization token for few paylogic custom API methods exposed by codereview
+FOGBUGZ_TOKEN
+   Fogbugz user API token to be used for Fogbugz API calls
 
-* FOGBUGZ_MERGEKEEPER_USER_ID - Fogbugz user ID. Used to assign an approved codereview's case to
-* FOGBUGZ_APPROVED_REVISION_FIELD_ID - Fogbugz field id to get and set approved revision information on the case
-* FOGBUGZ_TARGET_BRANCH_FIELD_ID  - Fogbugz field id to set target branch value. Used for mergekeepering process
-* FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID - Fogbugz field id to get original branch URL to create or update codereview issue
-* FOGBUGZ_FEATURE_BRANCH_FIELD_ID - Fogbugz field id to get feature branch URL to create or update codereview issue
-* FOGBUGZ_CI_PROJECT_FIELD_ID - Fogbugz field id to get CI project field values. Used for mergekeepering process
+API_TOKEN
+   authorization token for few paylogic custom API methods exposed by codereview
 
-* CODEREVIEW_IGNORED_FILES - List of files to ignore when creating or updating the codereview issue
-* CODEREVIEW_MAX_FILE_SIZE - Maximum file size over which file will be consirered as blob, so it's text will not be
-  shown as review context, only download will be possible
-* CODEREVIEW_VALIDATORS - List of functions, which will be executed to check if generated diff is valid. Functions
-  should receive single string argument - full diff.
+FOGBUGZ_MERGEKEEPER_USER_ID
+   Fogbugz user ID. Used to assign an approved codereview's case to
+
+FOGBUGZ_APPROVED_REVISION_FIELD_ID
+   Fogbugz field id to get and set approved revision information on the case
+
+FOGBUGZ_TARGET_BRANCH_FIELD_ID
+   Fogbugz field id to set target branch value. Used for mergekeepering process
+
+FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID
+   Fogbugz field id to get original branch URL to create or update codereview issue
+
+FOGBUGZ_FEATURE_BRANCH_FIELD_ID
+   Fogbugz field id to get feature branch URL to create or update codereview issue
+
+FOGBUGZ_CI_PROJECT_FIELD_ID
+   Fogbugz field id to get CI project field values. Used for mergekeepering process
+
+CODEREVIEW_IGNORED_FILES
+   List of files to ignore when creating or updating the codereview issue
+
+CODEREVIEW_MAX_FILE_SIZE
+   Maximum file size over which file will be consirered as blob, so it's text will not be
+   shown as review context, only download will be possible
+
+CODEREVIEW_VALIDATORS
+   List of functions, which will be executed to check if generated diff is valid. Functions
+   should receive single string argument - full diff.
+
+CODEREVIEW_TARGET_BRANCH_CHOICES_GETTER
+   Function to get autompletion list for the target branch field in the gatekeeper approval form.
+   Prototype is (ci_project, original_branch, branches)
+
+For the defaults of the listed settings, see `<paylogic/settings_base.py>`_.
 
 
 Paylogic notes
