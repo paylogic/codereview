@@ -90,6 +90,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.auth',    # required by admin panel
     'django.core.context_processors.request',
     'django.contrib.messages.context_processors.messages',
+    'django.core.context_processors.static',
 )
 
 ROOT_URLCONF = 'paylogic.urls'
@@ -107,6 +108,8 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.staticfiles',
     'django.contrib.messages',
+    'jquery',
+    'django_select2',
     'gae2django',
     'rietveld_helper',
 
@@ -185,7 +188,7 @@ FOGBUGZ_MERGEKEEPER_USER_ID = 999
 FOGBUGZ_APPROVED_REVISION_FIELD_ID = "plugin_customfields_at_fogcreek_com_approvedxrevision"
 FOGBUGZ_TARGET_BRANCH_FIELD_ID = "plugin_customfields_at_fogcreek_com_targetxbranch"
 FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID = "plugin_customfields_at_fogcreek_com_originalxbranch"
-FOGBUGS_FEATURE_BRANCH_FIELD_ID = "plugin_customfields_at_fogcreek_com_featurexbranch"
+FOGBUGZ_FEATURE_BRANCH_FIELD_ID = "plugin_customfields_at_fogcreek_com_featurexbranch"
 FOGBUGZ_CI_PROJECT_FIELD_ID = "cixproject"
 
 CODEREVIEW_IGNORED_FILES = ['.hg_archival.txt']
@@ -195,6 +198,12 @@ CODEREVIEW_MAX_FILE_SIZE = 1024 * 1024
 CODEREVIEW_VALIDATORS = [
 ]
 
+CODEREVIEW_TARGET_BRANCH_CHOICES_GETTER = lambda ci_project, original_branch, branches: []
+
+SELECT2_MEMCACHE_HOST = '127.0.0.1'
+SELECT2_MEMCACHE_PORT = 11211
+ENABLE_SELECT2_MULTI_PROCESS_SUPPORT = True
+AUTO_RENDER_SELECT2_STATICS = False
 
 LOGGING = {
     'version': 1,

@@ -1,4 +1,16 @@
 {%extends "base.html"%}
+{% load gatekeeper %}
+
+{%block head%}
+    {{block.super}}
+    {%if form%}
+        {{form.media}}
+    {%endif%}
+    <link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}css/all.min.css" />
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/select2.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/heavy_data.js"></script>
+{%endblock%}
 
 {%block mainmenu%}
   <a href="{%url codereview.views.index%}" class="active">Issues</a>
@@ -115,16 +127,7 @@
               Revision: {{ issue.latest_patch_rev }}
           </div>
           {% if perms.codereview.approve_patchset and issue.latest_reviewed_rev != issue.latest_patch_rev %}
-          <div><b>GK Approval:</b><br/>
-              <i>Hello Gatekeeper, please fill in a 'target branch', and press the button to mark this revision as approved and start merging it.</i><br/>
-              <form method="POST" id="gatekeeper-approval" action="{% url paylogic_mark_ok issue.id %}">
-                  {% csrf_token %}
-                  <label for="id_target_branch">Target branch:
-                      <input type="text" id="id_target_branch" name="target_branch">
-                  </label>
-                  <input type="submit" value="Approve {{ issue.latest_patch_rev }}" />
-              </form>
-          </div>
+            {% gatekeeper_approve_form request %}
           {% endif %}
           <div><b>Latest approved patchset:</b><br/>
               Number: <a onclick="$('toggled-section.opentriangle').click(); $('#ps-{{ issue.latest_approved_patchset.id}}-pointer').click(); return false" href="#ps{{ issue.latest_approved_patchset.id}}">{{ issue.latest_approved_patchset_number }}</a><br/>

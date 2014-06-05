@@ -1,3 +1,5 @@
+-r requirements-public.txt
+
 django-webtest==1.6.1
 importlib==1.0.3
 mock==1.0.1
@@ -6,3 +8,8 @@ pytest-cache==1.0
 pytest-django==2.6
 pytest-pep8==1.0.5
 WebTest==1.4.3
+
+# eggs which are not yet on public indexes
+https://bubenkoff-gae2django.googlecode.com/archive/urlquote-login-urls.tar.gz
+bzr+lp:~bubenkoff/django-openid-auth/paylogic
+https://github.com/paylogic/python-openid/archive/google.zip

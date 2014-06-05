@@ -21,6 +21,7 @@ from codereview import models, views
 from codereview.engine import ParsePatchSet
 
 from paylogic.vcs import GuessVCS, GitVCS
+from paylogic.forms import GatekeeperApprove
 
 import logging
 import logging.handlers
@@ -106,7 +107,11 @@ def parse_branch_vcs_info(branch, default_prefix):
                 except ValueError:
                     continue
                 if '#' in path:
-                    path, revision = path.split('#')
+                    parts = path.split('#')
+                    if len(parts) == 2:
+                        path, revision = path.split('#')
+                    else:
+                        continue
                 if not os.path.isdir(path):
                     try_path = os.path.join(definition['base_dir'], path)
                     if os.path.isdir(try_path):
@@ -154,6 +159,7 @@ def get_complete_diff(target, target_revision, source, source_revision):
                 log("Cleaning up temporary export {0}".format(path))
                 shutil.rmtree(path, ignore_errors=True)
                 log("Finished cleaning up temporary export {0}".format(path))
+        raise
 
 
 def generate_diff(original_branch, feature_branch):
@@ -207,26 +213,27 @@ def generate_diff(original_branch, feature_branch):
                 log("Finished cleaning up temporary clone {0}".format(path))
 
 
-def get_fogbugz_case_info(request):
-    """Get fogbugz case information.
+def get_fogbugz_case_info(case_number):
+    """Get Fogbugz case information.
 
-    :param: request
+    :param: case_number: `int` Fogbugz case number.
 
-    :return: `tuple` in form ('case_number', 'case_title', 'original_branch', 'feature_branch')
+    :return: `tuple` in form ('case_number', 'case_title', 'original_branch', 'feature_branch', 'ci_project')
     """
-    case_number = request.GET.get('case')
     fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=settings.FOGBUGZ_TOKEN)
     resp = fogbugz_instance.search(
         q='ixBug:"{0}"'.format(case_number),
         cols=','.join([
             'sTitle',
             settings.FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID,
-            settings.FOGBUGS_FEATURE_BRANCH_FIELD_ID]))
+            settings.FOGBUGZ_FEATURE_BRANCH_FIELD_ID,
+            settings.FOGBUGZ_CI_PROJECT_FIELD_ID]))
     return (
         case_number,
         resp.stitle.string,
-        getattr(resp, settings.FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID.lower()).string,
-        getattr(resp, settings.FOGBUGS_FEATURE_BRANCH_FIELD_ID.lower()).string)
+        getattr(resp, settings.FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID).text,
+        getattr(resp, settings.FOGBUGZ_FEATURE_BRANCH_FIELD_ID).text,
+        getattr(resp, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).text)
 
 
 def get_issue(request, case_number, case_title):
@@ -330,8 +337,7 @@ def process_codereview_from_fogbugz(request):
     :param request: HTTP request.
     """
     # get information from the fogbugz case
-    case_number, case_title, original_branch, feature_branch = get_fogbugz_case_info(
-        request)
+    case_number, case_title, original_branch, feature_branch, _ = get_fogbugz_case_info(request.REQUEST['case'])
 
     # get codereview issue
     issue = get_issue(request, case_number, case_title)
@@ -438,6 +444,22 @@ def mark_issue_approved(issue, case_id, target_branch):
     })
 
 
+def get_case_id(issue):
+    """Get Fogbugz case id from given issue.
+
+    :param issue: `Issue` object
+
+    :return: `int` Fogbugz case id.
+    """
+    match = re.search(
+        r'\(Case (\d+)\) Review: .+', issue.subject)
+
+    if not match:
+        raise RuntimeError('Case id cannot be found in the issue subject')
+
+    return match.group(1)
+
+
 @views.login_required
 @permission_required('codereview.approve_patchset')
 @views.post_required
@@ -450,24 +472,20 @@ def gatekeeper_mark_ok(request, issue_id):
     :param: issue_id: `str` id of the `Issue` to approve
     """
     try:
-        target_branch = request.REQUEST.get('target_branch', None)
-        if not target_branch:
-            raise RuntimeError(
-                'You need to pass a target_branch parameter when approving a review. '
-                'Please do so and try again.')
         try:
             issue = models.Issue.objects.get(id=issue_id)
         except models.Issue.DoesNotExist:
             raise RuntimeError('Issue does not exist!')
 
-        match = re.search(
-            r'\(Case (\d+)\) Review: .+', issue.subject)
+        case_id = get_case_id(issue)
 
-        if not match:
-            raise RuntimeError('Case id cannot be found in the issue subject')
+        form = GatekeeperApprove(case_id, request.POST)
+        if not form.is_valid():
+            raise RuntimeError(
+                'You need to pass a target_branch parameter when approving a review. '
+                'Please do so and try again.')
+        target_branch = form.cleaned_data['target_branch']
 
-        case_id = match.group(1)
-        target_branch = request.REQUEST['target_branch']
         mark_issue_approved(issue, case_id, target_branch)
         messages_api.success(
             request, 'Revision {issue.latest_reviewed_rev} was sucesssfully approved '

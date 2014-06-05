@@ -1,0 +1,8 @@
+<div><b>GK Approval:</b><br/>
+  <i>Hello Gatekeeper, please fill in a 'target branch', and press the button to mark this revision as approved and start merging it.</i><br/>
+  <form method="POST" id="gatekeeper-approval" action="{% url paylogic_mark_ok issue.id %}">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" value="Approve {{ issue.latest_patch_rev }}" />
+  </form>
+</div>

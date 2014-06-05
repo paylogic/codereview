@@ -797,6 +797,10 @@ class VersionControlSystem(object):
         path = os.path.normpath(path) + os.sep
         os.makedirs(path)
 
+    def GetBranches(self):
+        """Get repository branches."""
+        raise NotImplementedError()
+
 
 class SubversionVCS(VersionControlSystem):
 
@@ -1295,6 +1299,13 @@ class GitVCS(VersionControlSystem):
                 os.path.normpath(path) + os.sep, '-a'],
             silent_ok=True, check_returncode=True, cwd=self.repo_dir)
 
+    def GetBranches(self):
+        out = RunShell(
+            ['git', 'branch', '-l'],
+            cwd=self.repo_dir,
+            silent_ok=False, ignore_stderr=True)
+        return out.split()
+
 
 class MercurialVCS(VersionControlSystem):
 
@@ -1445,6 +1456,13 @@ class MercurialVCS(VersionControlSystem):
             'hg', 'update', self.base_rev],
             cwd=self.repo_dir,
             silent_ok=True)
+
+    def GetBranches(self):
+        out = RunShell([
+            'hg', 'branches', '-q', '-e' if self.repo_dir.startswith('ssh:') else '-R',
+            self.repo_dir],
+            silent_ok=False, ignore_stderr=True)
+        return out.split()
 
 
 class BazaarVCS(VersionControlSystem):

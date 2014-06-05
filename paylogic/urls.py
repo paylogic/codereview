@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.views import debug
 
 from paylogic import patches  # NOQA
+from paylogic import lookups
 
 # from codereview.urls import urlpatterns
 
@@ -26,6 +27,8 @@ urlpatterns = patterns(
         name='find_from_fogbugz'),
     url(r'^mergekeeper_close/(?P<case_id>\d+)/$',
         'paylogic.views.mergekeeper_close', name='mergekeeper_close'),
+    url(r'^lookup/target_branches/(?P<case_id>\d+)$',
+        lookups.TargetBranchesView.as_view(), name='lookup_target_branches'),
     url(r'^gatekeeper_mark_ok/(?P<issue_id>\d+)/$',
         'paylogic.views.gatekeeper_mark_ok', name="paylogic_mark_ok"),
     ('', include('codereview.urls')),

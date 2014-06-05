@@ -1,4 +1,5 @@
 import os.path
+import re
 import sys
 import subprocess
 
@@ -18,6 +19,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings_test'
 import django_webtest
 from django.core import urlresolvers
 from django.contrib.auth import models as auth_models
+from django.conf import settings
 
 from paylogic import patches  # NOQA
 from codereview import models
@@ -33,6 +35,32 @@ def app(user, user_name, user_password):
     form['password'] = user_password
     form.submit().follow()
     return app
+
+
+@pytest.fixture(autouse=True)
+def django_settings(repo_base_dir, target_repo_name, source_repo_name, vcs):
+    """Override django settings for tests purpose."""
+
+    default_branches = {
+        'hg': 'default',
+        'git': 'master',
+        'bzr': 'trunk'
+    }
+
+    settings.VCS = {
+        vcs: {
+            'base_dir': repo_base_dir.strpath,
+            'regex': re.compile('^({base_dir}/|{vcs}\+)(.+)$'.format(
+                base_dir=repo_base_dir.strpath, vcs=vcs)),
+            'supports_direct_export': vcs != 'git',
+            'default_branch': default_branches[vcs]
+        },
+    }
+
+    settings.FEATURE_BRANCH_DEFAULT_PREFIX = '{vcs}+{path}#'.format(
+        vcs=vcs, path=repo_base_dir.join(source_repo_name).strpath)
+    settings.ORIGINAL_BRANCH_DEFAULT_PREFIX = '{vcs}+{path}#'.format(
+        vcs=vcs, path=repo_base_dir.join(target_repo_name).strpath)
 
 
 @pytest.fixture
@@ -252,13 +280,20 @@ def case_id():
 
 
 @pytest.fixture
-def mocked_fogbugz_info(monkeypatch, case_id, source_repo_url, target_repo_url, target_repo_branch):
+def ci_project():
+    """Test ci project."""
+    return 'ci-project'
+
+
+@pytest.fixture
+def mocked_fogbugz_info(monkeypatch, case_id, source_repo_url, target_repo_url, target_repo_branch, ci_project):
     def mocked_fogbugz_case_info(request):
         return (
             case_id,
             'Some title',
             target_repo_url,
-            source_repo_url)
+            source_repo_url,
+            ci_project)
 
     monkeypatch.setattr(views, 'get_fogbugz_case_info',
                         mocked_fogbugz_case_info)
