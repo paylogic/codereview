@@ -12,16 +12,17 @@ class GatekeeperApprove(forms.Form):
         data_view='lookup_target_branches',
     )
 
-    target_branch.widget.options['minimumInputLength'] = 0
-    target_branch.widget.options['maximumSelectionSize'] = 1
-
     def __init__(self, case_id, *args, **kwargs):
         """Set the lookup url according to a given Fogbugz case_id.
 
         :param case_id: `int` Fogbugz case id.
         """
         super(GatekeeperApprove, self).__init__(*args, **kwargs)
-        self.fields['target_branch'].widget.url = reverse(
+        widget = self.fields['target_branch'].widget
+        widget.options['minimumInputLength'] = 0
+        widget.options['maximumSelectionSize'] = 1
+
+        widget.url = widget.options['ajax']['url'] = reverse(
             self.fields['target_branch'].widget.view, kwargs=dict(case_id=case_id))
 
     def clean_target_branch(self):
