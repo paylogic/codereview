@@ -1,6 +1,7 @@
 language: python
 # command to install dependencies
 # # command to run tests
+install: true
 script:
   - make test
 after_success:
