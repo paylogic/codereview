@@ -29,7 +29,7 @@ class TargetBranchesView(Select2View):
                 pass
 
         if settings.CODEREVIEW_TARGET_BRANCH_CHOICES_GETTER:
-            choices = settings.CODEREVIEW_TARGET_BRANCH_CHOICES_GETTER(ci_project, original_branch, branches)
+            choices = settings.CODEREVIEW_TARGET_BRANCH_CHOICES_GETTER(ci_project, target_revision, branches)
         else:
             choices = []
         return (NO_ERR_RESP, False, choices)  # Any error response, Has more results, options list
