@@ -882,3 +882,7 @@ ul.errorlist li {
    border-color: black;
    color: white;
 }
+
+.select2-container div {
+    margin-top: auto;
+}

@@ -2,6 +2,7 @@ language: python
 # command to install dependencies
 # # command to run tests
 script:
+  - make travis-env
   - make test
 after_success:
   - make coveralls

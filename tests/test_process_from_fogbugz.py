@@ -1,43 +1,15 @@
 """Codereview paylogic custom views tests."""
 import datetime
-import re
 import urllib
 
 import pytest
 
-from django.conf import settings
 from django import db
 from django.core import urlresolvers
 
 from codereview import models
 
 from paylogic import views
-
-
-@pytest.fixture(autouse=True)
-def django_settings(repo_base_dir, target_repo_name, source_repo_name, vcs):
-    """Override django settings for tests purpose."""
-
-    default_branches = {
-        'hg': 'default',
-        'git': 'master',
-        'bzr': 'trunk'
-    }
-
-    settings.VCS = {
-        vcs: {
-            'base_dir': repo_base_dir.strpath,
-            'regex': re.compile('^({base_dir}/|{vcs}\+)(.+)$'.format(
-                base_dir=repo_base_dir.strpath, vcs=vcs)),
-            'supports_direct_export': vcs != 'git',
-            'default_branch': default_branches[vcs]
-        },
-    }
-
-    settings.FEATURE_BRANCH_DEFAULT_PREFIX = '{vcs}+{path}#'.format(
-        vcs=vcs, path=repo_base_dir.join(source_repo_name).strpath)
-    settings.ORIGINAL_BRANCH_DEFAULT_PREFIX = '{vcs}+{path}#'.format(
-        vcs=vcs, path=repo_base_dir.join(target_repo_name).strpath)
 
 
 def test_process_codereview_from_fogbugz(

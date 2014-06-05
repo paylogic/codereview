@@ -129,7 +129,7 @@ The most important settings are:
 * FOGBUGZ_APPROVED_REVISION_FIELD_ID - Fogbugz field id to get and set approved revision information on the case
 * FOGBUGZ_TARGET_BRANCH_FIELD_ID  - Fogbugz field id to set target branch value. Used for mergekeepering process
 * FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID - Fogbugz field id to get original branch URL to create or update codereview issue
-* FOGBUGS_FEATURE_BRANCH_FIELD_ID - Fogbugz field id to get feature branch URL to create or update codereview issue
+* FOGBUGZ_FEATURE_BRANCH_FIELD_ID - Fogbugz field id to get feature branch URL to create or update codereview issue
 * FOGBUGZ_CI_PROJECT_FIELD_ID - Fogbugz field id to get CI project field values. Used for mergekeepering process
 
 * CODEREVIEW_IGNORED_FILES - List of files to ignore when creating or updating the codereview issue

@@ -15,7 +15,8 @@ endif
 
 develop: env
 	test -a paylogic/settings_local.py || cp paylogic/settings_local_example.py paylogic/settings_local.py
-	pip install -r requirements.txt -r requirements-testing.txt $(pip_args)
+	pip install -r requirements-testing.txt $(pip_args)
+	pip install -r requirements.txt $(pip_args)
 	python manage.py syncdb
 
 test: develop
