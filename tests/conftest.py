@@ -93,11 +93,11 @@ def vcs_commands(vcs):
     return {
         'git': {
             'init': ['git', 'init'],
-            'config': ['git', 'config', 'user.name', 'testuser'],
+            'config': [('git', 'config', 'user.name', 'testuser'), ('git', 'config', 'user.email', 'test@u.ser')],
             'add': ['git', 'add', '.'],
             'clone': ['git', 'clone'],
             'branch': ['git', 'checkout', '-b'],
-            'commit': ['git', 'commit', '-am', '"test commit"', '--author', '"testuser <test@u.ser>"'],
+            'commit': ['git', 'commit', '-am', '"test commit"'],
             'bare': ['git', 'config', 'core.bare', 'true']
         },
         'hg': {
@@ -109,11 +109,12 @@ def vcs_commands(vcs):
         },
         'bzr': {
             'init': ['bzr', 'init-repo'],
+            'config': [('bzr', 'whoami', '"testuser <test@u.ser>"')],
             'init-branch': ['bzr', 'init'],
             'add': ['bzr', 'add', '.'],
             'branch': ['bzr', 'branch'],
             'clone': ['bzr', 'clone'],
-            'commit': ['bzr', 'commit', '-m', '"test commit"', '--autho', 'testuser']
+            'commit': ['bzr', 'commit', '-m', '"test commit"']
         },
     }[vcs]
 
@@ -145,7 +146,8 @@ def target_repo(
     os.makedirs(path.strpath)
     subprocess.check_call(vcs_commands['init'] + [path.strpath])
     if 'config' in vcs_commands:
-        subprocess.check_call(vcs_commands['config'] + [path.strpath])
+        for commands in vcs_commands['config']:
+            subprocess.check_call(commands, cwd=path.strpath)
     if vcs == 'bzr':
         path = path.join(target_repo_branch)
         subprocess.check_call(vcs_commands['init-branch'] + [path.strpath])
