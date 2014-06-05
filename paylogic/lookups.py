@@ -17,13 +17,16 @@ class TargetBranchesView(Select2View):
         target_vcs, target_url, target_revision, target_branch_is_local = views.parse_branch_vcs_info(
             original_branch, settings.ORIGINAL_BRANCH_DEFAULT_PREFIX)
 
-        target = GuessVCS(
-            views.attrdict({'revision': target_revision, 'vcs': target_vcs}), target_url)
-        try:
-            branches = target.GetBranches()
-        except NotImplementedError:
-            # could be not yet supported by VCS
-            branches = []
+        branches = []
+        if target_branch_is_local:
+
+            target = GuessVCS(
+                views.attrdict({'revision': target_revision, 'vcs': target_vcs}), target_url)
+            try:
+                branches = target.GetBranches()
+            except NotImplementedError:
+                # could be not yet supported by VCS
+                pass
 
         if settings.CODEREVIEW_TARGET_BRANCH_CHOICES_GETTER:
             choices = settings.CODEREVIEW_TARGET_BRANCH_CHOICES_GETTER(ci_project, original_branch, branches)
