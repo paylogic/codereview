@@ -5,7 +5,7 @@ python:
 # # command to run tests
 install: true
 script:
-  - make test
+  - make test python_version=
 after_success:
   - make coveralls
 notifications:
