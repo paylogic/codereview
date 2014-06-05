@@ -93,7 +93,9 @@ def vcs_commands(vcs):
     return {
         'git': {
             'init': ['git', 'init'],
-            'config': [('git', 'config', 'user.name', 'testuser'), ('git', 'config', 'user.email', 'test@u.ser')],
+            'config': [
+                ('git', 'config', 'user.name', 'testuser'),
+                ('git', 'config', 'user.email', 'travis@localhost.localdomain')],
             'add': ['git', 'add', '.'],
             'clone': ['git', 'clone'],
             'branch': ['git', 'checkout', '-b'],
