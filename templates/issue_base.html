@@ -1,5 +1,5 @@
 {%extends "base.html"%}
-{% load gatekeeper %}
+{% load gatekeeper fogbugz %}
 
 {%block head%}
     {{block.super}}
@@ -58,7 +58,7 @@
     Issue <a href="{%url codereview.views.show issue.key.id%}"
                onmouseover="M_showPopUp(this, 'popup-issue');">
             {{issue.key.id}}</a>:
-    {{issue.subject}} {%if issue.closed %} (Closed) {%endif%}
+    {{issue.subject}} {%if issue.closed %} (Closed) {%endif%} <a href="{{issue|fogbugz_case_url}}" target="_blank">see Fogbugz case</a>
   </h2>
 
   <table class="issue-details" border="0" width="100%">

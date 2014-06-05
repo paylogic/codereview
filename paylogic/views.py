@@ -229,12 +229,13 @@ def get_fogbugz_case_info(case_number):
             settings.FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID,
             settings.FOGBUGZ_FEATURE_BRANCH_FIELD_ID,
             settings.FOGBUGZ_CI_PROJECT_FIELD_ID]))
+
     return (
         case_number,
         CDATA_RE.sub('', resp.stitle.string),
-        CDATA_RE.sub('', getattr(resp, settings.FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID).string),
-        CDATA_RE.sub('', getattr(resp, settings.FOGBUGZ_FEATURE_BRANCH_FIELD_ID).string),
-        CDATA_RE.sub('', getattr(resp, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string)
+        CDATA_RE.sub('', getattr(resp, settings.FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID).string or ''),
+        CDATA_RE.sub('', getattr(resp, settings.FOGBUGZ_FEATURE_BRANCH_FIELD_ID).string or ''),
+        CDATA_RE.sub('', getattr(resp, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string or '')
     )
 
 
