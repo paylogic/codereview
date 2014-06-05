@@ -1,9 +1,11 @@
 language: python
+python:
+    - 2.7
 # command to install dependencies
 # # command to run tests
 install: true
 script:
-  - make test
+  - make test python_version=2.7
 after_success:
   - make coveralls
 notifications:
