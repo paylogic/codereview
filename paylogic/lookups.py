@@ -1,4 +1,6 @@
 """Lookups for paylogic customizations."""
+import os.path
+
 from django_select2 import Select2View, NO_ERR_RESP
 from django.conf import settings
 
@@ -18,13 +20,12 @@ class TargetBranchesView(Select2View):
             original_branch, settings.ORIGINAL_BRANCH_DEFAULT_PREFIX)
 
         branches = []
-        if target_branch_is_local:
-
+        if os.path.isdir(target_url):
             target = GuessVCS(
                 views.attrdict({'revision': target_revision, 'vcs': target_vcs}), target_url)
             try:
                 branches = target.GetBranches()
-            except NotImplementedError:
+            except Exception:
                 # could be not yet supported by VCS
                 pass
 

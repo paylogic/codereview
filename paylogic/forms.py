@@ -21,6 +21,7 @@ class GatekeeperApprove(forms.Form):
         widget = self.fields['target_branch'].widget
         widget.options['minimumInputLength'] = 0
         widget.options['maximumSelectionSize'] = 1
+        widget.options['width'] = '200px'
 
         widget.url = widget.options['ajax']['url'] = reverse(
             self.fields['target_branch'].widget.view, kwargs=dict(case_id=case_id))
