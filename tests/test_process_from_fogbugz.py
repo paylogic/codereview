@@ -1,5 +1,4 @@
 """Codereview paylogic custom views tests."""
-import datetime
 import urllib
 
 import pytest
@@ -41,10 +40,10 @@ def test_process_codereview_from_fogbugz(
     assert target_test_file_source_content in patches[1].text
 
 
-def test_process_codereview_from_fogbugz_too_fast(
+def test_process_codereview_from_fogbugz_processing(
         user, rf, target_test_file_name, target_test_file_content, target_test_file_source_content,
         source_test_file_name, source_test_file_content, mocked_fogbugz_info, case_id):
-    """Test creating issue using the data from fogbugz case."""
+    """Test creating issue using the data from fogbugz case when there is another process doing the same."""
     request = rf.get(urlresolvers.reverse('process_from_fogbugz') + '?' + urllib.urlencode(dict(case=case_id)))
     request.user = user
     response = views.process_codereview_from_fogbugz(request)
@@ -52,18 +51,13 @@ def test_process_codereview_from_fogbugz_too_fast(
     match = urlresolvers.resolve(url)
     issue_id = match.args[0]
 
+    db.connection.cursor().execute(
+        'update codereview_issue set processing=%s where id=%s', [
+            True,
+            issue_id
+        ])
+
     # now try to process codereview immediately again, it should fail
     with pytest.raises(RuntimeError) as exc_info:
         views.process_codereview_from_fogbugz(request)
     assert exc_info.value.args == ('Cannot handle multiple submit requests for the same Fogbugz case.',)
-
-    new_date = datetime.datetime.now() - datetime.timedelta(minutes=1, seconds=1)
-
-    # but if we'll wait for a minute, it will be ok
-    db.connection.cursor().execute(
-        'update codereview_issue set created=%s, modified=%s where id=%s', [
-            new_date,
-            new_date,
-            issue_id])
-
-    assert views.process_codereview_from_fogbugz(request)

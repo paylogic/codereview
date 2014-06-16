@@ -10,6 +10,9 @@
     <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/select2.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/heavy_data.js"></script>
+    {% if issue and not issue.closed %}
+        {% create_codereview_if_neccessary_message request issue %}
+    {% endif %}
 {%endblock%}
 
 {%block mainmenu%}

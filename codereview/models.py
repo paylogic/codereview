@@ -88,6 +88,7 @@ class Issue(db.Model):
 
     latest_patch_rev = db.StringProperty(required=False)
     latest_reviewed_rev = db.StringProperty(required=False)
+    processing = db.BooleanProperty(default=False)
 
     _is_starred = None
 

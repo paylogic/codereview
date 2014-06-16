@@ -178,6 +178,20 @@ Paylogic customizations are mostly located in paylogic folder.
 However, we also had to change some parts of codereview package.
 
 
+Database migrations
+-------------------
+
+It's problematic to use automatic database migrations tools as codereview app uses google app engine models.
+Here is the simple but working solution we've made:
+
+::
+
+     cat paylogic/migrations/*.sql | ./manage.py dbshell
+
+SQL scripts in paylogic/migrations folder are named in order so this way we ensure the correct order of migrations.
+Idempotency is ensured by using `IF NOT EXISTS` so similar inside of SQL scripts.
+
+
 Adding Users
 ------------
 

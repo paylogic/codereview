@@ -3,7 +3,11 @@ import re
 import sys
 import subprocess
 
+import mock
+
 import pytest
+
+import fogbugz
 
 PROJECT_PATH = os.path.dirname(os.path.dirname(__file__))
 
@@ -295,8 +299,9 @@ def ci_project():
     return 'ci-project'
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mocked_fogbugz_info(monkeypatch, case_id, source_repo_url, target_repo_url, target_repo_branch, ci_project):
+    """Mock mocked_fogbugz_case_info function using given fixtures."""
     def mocked_fogbugz_case_info(request):
         return (
             case_id,
@@ -307,6 +312,12 @@ def mocked_fogbugz_info(monkeypatch, case_id, source_repo_url, target_repo_url, 
 
     monkeypatch.setattr(views, 'get_fogbugz_case_info',
                         mocked_fogbugz_case_info)
+
+
+@pytest.fixture(autouse=True)
+def mocked_fogbugz(monkeypatch):
+    """Mock Fogbugz class to avoid external connections."""
+    monkeypatch.setattr(fogbugz, 'FogBugz', mock.Mock())
 
 
 @pytest.fixture

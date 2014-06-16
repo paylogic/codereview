@@ -885,7 +885,6 @@ class SubversionVCS(VersionControlSystem):
         for line in data.splitlines():
             if line.startswith("Index:") or line.startswith("Property changes on:"):
                 count += 1
-                logging.debug(line)
         if not count:
             ErrorExit("No valid patches found in output from svn diff")
         return data
@@ -1371,7 +1370,6 @@ class MercurialVCS(VersionControlSystem):
                 svndiff.append("Index: %s" % filename)
                 svndiff.append("=" * 67)
                 filecount += 1
-                logging.debug(line)
             else:
                 svndiff.append(line)
         if not filecount:
@@ -1489,7 +1487,6 @@ class BazaarVCS(VersionControlSystem):
                 # Modify line to make it look like as it comes from svn diff.
                 lines[i] = "Index: %s" % match.group(2)
                 filecount += 1
-                logging.debug(line)
         if not filecount:
             ErrorExit("No valid patches found in output from bzr diff")
         return "\n".join(lines)
