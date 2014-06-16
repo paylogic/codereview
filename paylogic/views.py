@@ -94,7 +94,7 @@ def parse_branch_vcs_info(branch, default_prefix):
 
     :param branch: full branch string including repo url.
 
-    :return: `tuple` in form: (vcs, path, revision, is_local)
+    :return: `tuple` in form: (vcs, path, revision, is_local, supports_simple_cloning)
     """
     for prefix in ['', default_prefix]:
         prefixed_branch = prefix + branch
@@ -117,7 +117,9 @@ def parse_branch_vcs_info(branch, default_prefix):
                     try_path = os.path.join(definition['base_dir'], path)
                     if os.path.isdir(try_path):
                         path = try_path
-                return vcs, path, revision, definition['supports_direct_export'] and os.path.exists(path)
+                return (
+                    vcs, path, revision, definition['supports_direct_export'] and os.path.exists(path),
+                    definition['supports_simple_cloning'])
 
     raise ValueError('Invalid branch format: {0}'.format(branch))
 
@@ -171,10 +173,16 @@ def generate_diff(original_branch, feature_branch):
 
     :return: string diff in svn format
     """
-    source_vcs, source_url, source_revision, source_branch_is_local = parse_branch_vcs_info(
+    source_vcs, source_url, source_revision, source_branch_is_local, supports_simple_cloning = parse_branch_vcs_info(
         feature_branch, settings.FEATURE_BRANCH_DEFAULT_PREFIX)
-    target_vcs, target_url, target_revision, target_branch_is_local = parse_branch_vcs_info(
-        original_branch, settings.ORIGINAL_BRANCH_DEFAULT_PREFIX)
+
+    if supports_simple_cloning:
+        target_branch_default_prefix = '{0}+{1}#'.format(source_vcs, source_url)
+    else:
+        target_branch_default_prefix = settings.ORIGINAL_BRANCH_DEFAULT_PREFIX
+
+    target_vcs, target_url, target_revision, target_branch_is_local, _ = parse_branch_vcs_info(
+        original_branch, target_branch_default_prefix)
 
     log('source revision: %s' % source_revision)
     log('target revision: %s' % target_revision)
