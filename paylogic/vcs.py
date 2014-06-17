@@ -885,6 +885,7 @@ class SubversionVCS(VersionControlSystem):
         for line in data.splitlines():
             if line.startswith("Index:") or line.startswith("Property changes on:"):
                 count += 1
+                logging.debug(line)
         if not count:
             ErrorExit("No valid patches found in output from svn diff")
         return data
@@ -1280,8 +1281,7 @@ class GitVCS(VersionControlSystem):
             out = RunShell(['git', 'ls-remote', self.repo_dir, self.base_rev],
                            silent_ok=True, ignore_stderr=True, ).split()[0].strip()
         if not out:
-            raise RuntimeError('%s: revision %s is not found' %
-                            (self.repo_dir, self.base_rev))
+            raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, self.base_rev))
         return out
 
     def Pull(self, source, *args):
@@ -1343,8 +1343,7 @@ class MercurialVCS(VersionControlSystem):
             self.repo_dir, '-r', self.base_rev, '--id'],
             silent_ok=True, ignore_stderr=True)
         if not out:
-            raise RuntimeError('%s: revision %s is not found' %
-                            (self.repo_dir, self.base_rev))
+            raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, self.base_rev))
         return out
 
     def GenerateDiff(self, source_revision, source_path=None):
@@ -1369,6 +1368,7 @@ class MercurialVCS(VersionControlSystem):
                 svndiff.append("Index: %s" % filename)
                 svndiff.append("=" * 67)
                 filecount += 1
+                logging.debug(line)
             else:
                 svndiff.append(line)
         if not filecount:
@@ -1486,6 +1486,7 @@ class BazaarVCS(VersionControlSystem):
                 # Modify line to make it look like as it comes from svn diff.
                 lines[i] = "Index: %s" % match.group(2)
                 filecount += 1
+                logging.debug(line)
         if not filecount:
             ErrorExit("No valid patches found in output from bzr diff")
         return "\n".join(lines)
@@ -1550,8 +1551,7 @@ class BazaarVCS(VersionControlSystem):
             ['bzr', 'version-info'], cwd=self.get_cwd(),
             silent_ok=False, ignore_stderr=True)
         if not out:
-            raise RuntimeError('%s: revision %s is not found' %
-                            (self.repo_dir, self.base_rev))
+            raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, self.base_rev))
         return out.split('revision-id: ')[1].split()[0]
 
     def Export(self, path):
