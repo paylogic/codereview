@@ -136,7 +136,7 @@ def StatusUpdate(msg):
 
 def ErrorExit(msg):
     """Print an error message to stderr and exit."""
-    raise Exception(msg)
+    raise RuntimeError(msg)
 
 
 class ClientLoginError(urllib2.HTTPError):
@@ -1275,13 +1275,13 @@ class GitVCS(VersionControlSystem):
         try:
             out = RunShell(['git', 'rev-parse', self.base_rev, '--'],
                            cwd=self.repo_dir,
-                           silent_ok=False, ignore_stderr=False, )
-        except Exception:
+                           silent_ok=False, ignore_stderr=False, ).split()[0].strip()
+        except RuntimeError:
             # Not a local branch? Try remote one
             out = RunShell(['git', 'ls-remote', self.repo_dir, self.base_rev],
                            silent_ok=True, ignore_stderr=True, ).split()[0].strip()
         if not out:
-            raise Exception('%s: revision %s is not found' %
+            raise RuntimeError('%s: revision %s is not found' %
                             (self.repo_dir, self.base_rev))
         return out
 
@@ -1344,7 +1344,7 @@ class MercurialVCS(VersionControlSystem):
             self.repo_dir, '-r', self.base_rev, '--id'],
             silent_ok=True, ignore_stderr=True)
         if not out:
-            raise Exception('%s: revision %s is not found' %
+            raise RuntimeError('%s: revision %s is not found' %
                             (self.repo_dir, self.base_rev))
         return out
 
@@ -1553,7 +1553,7 @@ class BazaarVCS(VersionControlSystem):
             ['bzr', 'version-info'], cwd=self.get_cwd(),
             silent_ok=False, ignore_stderr=True)
         if not out:
-            raise Exception('%s: revision %s is not found' %
+            raise RuntimeError('%s: revision %s is not found' %
                             (self.repo_dir, self.base_rev))
         return out.split('revision-id: ')[1].split()[0]
 

@@ -183,7 +183,7 @@ def get_source_target_revisions(source, source_revision, target, target_revision
         source.base_rev = target_revision
         try:
             target_revision = source.CheckRevision().strip()
-        except Exception:
+        except RuntimeError:
             # branch is not there, use target repo's branch then
             pass
 
