@@ -189,7 +189,7 @@ Here is the simple but working solution we've made:
      cat paylogic/migrations/*.sql | ./manage.py dbshell
 
 SQL scripts in paylogic/migrations folder are named in order so this way we ensure the correct order of migrations.
-Idempotency is ensured by using `IF NOT EXISTS` so similar inside of SQL scripts.
+Idempotency is ensured by using `IF NOT EXISTS` or similar inside of SQL scripts.
 
 
 Adding Users
