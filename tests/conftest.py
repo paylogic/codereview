@@ -57,6 +57,7 @@ def django_settings(repo_base_dir, target_repo_name, source_repo_name, vcs):
             'regex': re.compile('^({base_dir}/|{vcs}\+)(.+)$'.format(
                 base_dir=repo_base_dir.strpath, vcs=vcs)),
             'supports_direct_export': vcs != 'git',
+            'supports_simple_cloning': vcs != 'bzr',
             'default_branch': default_branches[vcs]
         },
     }
