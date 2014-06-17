@@ -31,7 +31,7 @@ def create_codereview_if_neccessary_message(request, issue):
     case_id = get_case_id(issue)
     _, case_title, original_branch, feature_branch, ci_project = get_fogbugz_case_info(case_id)
 
-    source_vcs, source_url, source_revision, source_branch_is_local = parse_branch_vcs_info(
+    source_vcs, source_url, source_revision, source_branch_is_local, _ = parse_branch_vcs_info(
         feature_branch, settings.FEATURE_BRANCH_DEFAULT_PREFIX)
     if os.path.isdir(source_url):
         source = GuessVCS(
