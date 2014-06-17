@@ -882,6 +882,11 @@ ul.errorlist li {
    border-color: black;
    color: white;
 }
+.flash-message.warning {
+   background-color: #faf09a;
+   border-color: black;
+   color: black;
+}
 
 .select2-container div {
     margin-top: auto;

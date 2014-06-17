@@ -265,6 +265,8 @@ class EditForm(IssueBaseForm):
 
     latest_reviewed_rev = forms.CharField(required=False)
 
+    latest_patch_rev = forms.CharField(required=False)
+
 
 class EditLocalBaseForm(forms.Form):
     subject = forms.CharField(max_length=MAX_SUBJECT,
@@ -1980,6 +1982,7 @@ def edit(request):
     def apply_perms(form):
         if not request.user.has_perm('codereview.approve_patchset'):
             del form.fields['latest_reviewed_rev']
+            del form.fields['latest_patch_rev']
 
     if request.method != 'POST':
         reviewers = [models.Account.get_nickname_for_email(reviewer,
@@ -1995,6 +1998,7 @@ def edit(request):
                                  'closed': issue.closed,
                                  'private': issue.private,
                                  'latest_reviewed_rev': issue.latest_reviewed_rev,
+                                 'latest_patch_rev': issue.latest_patch_rev
                                  })
 
         if not issue.local_base:
@@ -2033,6 +2037,7 @@ def edit(request):
     issue.cc = cc
     if 'latest_reviewed_rev' in cleaned_data:
         issue.latest_reviewed_rev = cleaned_data['latest_reviewed_rev']
+        issue.latest_patch_rev = cleaned_data['latest_patch_rev']
     if base_changed:
         for patchset in issue.patchset_set:
             db.run_in_transaction(

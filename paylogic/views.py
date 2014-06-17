@@ -1,5 +1,4 @@
 """Paylogic codereview custom views."""
-from datetime import datetime, timedelta
 import os
 import re
 import shutil
@@ -295,13 +294,11 @@ def get_issue(request, case_number, case_title):
         if issue.closed:
             raise RuntimeError(
                 'Issue already closed, cannot be edited anymore.')
-        if (datetime.now() - max(issue.created, issue.modified)) <= timedelta(minutes=1):
+        if issue.processing:
             raise RuntimeError('Cannot handle multiple submit requests for the same Fogbugz case.')
 
         if issue.subject != issue_desc_complete:
             issue.subject = issue_desc_complete
-
-        issue.save()
     else:
         log("Creating issue instance")
         issue = models.Issue(subject=issue_desc_complete,
@@ -310,7 +307,10 @@ def get_issue(request, case_number, case_title):
                              owner=user,
                              n_comments=0)
         log("Putting instance")
-        issue.put()
+
+    issue.processing = True
+    issue.save()
+
     return issue
 
 
@@ -408,7 +408,8 @@ def process_codereview_from_fogbugz(request):
 
         db.put(patches)
         fill_original_files(patches, target_export_path, source_export_path)
-
+        issue.processing = False
+        issue.save()
         return HttpResponseRedirect('/%s/show' % issue.id)
     finally:
         for path in target_export_path, source_export_path:
@@ -452,9 +453,9 @@ def mark_issue_approved(issue, case_id, target_branch):
     """
     fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=settings.FOGBUGZ_TOKEN)
 
-    result = fogbugz_instance.search(
-        q=case_id, cols=settings.FOGBUGZ_CI_PROJECT_FIELD_ID)
-    ci_project = getattr(result, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string
+    # get information from the fogbugz case
+    _, _, _, _, ci_project = get_fogbugz_case_info(case_id)
+
     if not ci_project or ci_project == '--':
         raise RuntimeError(
             'You need to set CI Project field in the Fogbugz case '

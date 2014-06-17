@@ -1281,8 +1281,7 @@ class GitVCS(VersionControlSystem):
             out = RunShell(['git', 'ls-remote', self.repo_dir, self.base_rev],
                            silent_ok=True, ignore_stderr=True, ).split()[0].strip()
         if not out:
-            raise RuntimeError('%s: revision %s is not found' %
-                            (self.repo_dir, self.base_rev))
+            raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, self.base_rev))
         return out
 
     def Pull(self, source, *args):
@@ -1344,8 +1343,7 @@ class MercurialVCS(VersionControlSystem):
             self.repo_dir, '-r', self.base_rev, '--id'],
             silent_ok=True, ignore_stderr=True)
         if not out:
-            raise RuntimeError('%s: revision %s is not found' %
-                            (self.repo_dir, self.base_rev))
+            raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, self.base_rev))
         return out
 
     def GenerateDiff(self, source_revision, source_path=None):
@@ -1553,8 +1551,7 @@ class BazaarVCS(VersionControlSystem):
             ['bzr', 'version-info'], cwd=self.get_cwd(),
             silent_ok=False, ignore_stderr=True)
         if not out:
-            raise RuntimeError('%s: revision %s is not found' %
-                            (self.repo_dir, self.base_rev))
+            raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, self.base_rev))
         return out.split('revision-id: ')[1].split()[0]
 
     def Export(self, path):
