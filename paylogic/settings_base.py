@@ -156,18 +156,21 @@ VCS = {
         'base_dir': '/var/codereview/hg/',
         'regex': re.compile('^((ssh://code\.(?:example\.com)/)?/var/codereview/hg/|hg\+)(.+)$'),
         'supports_direct_export': True,
+        'supports_simple_cloning': True,
         'default_branch': 'default',
     },
     'bzr': {
         'base_dir': '/var/codereview/bzr/',
         'regex': re.compile('^((ssh://code\.(?:example\.com)/)?/var/codereview/bzr/|bzr\+)(.+)$'),
         'supports_direct_export': True,
+        'supports_simple_cloning': False,
         'default_branch': 'trunk',
     },
     'git': {
         'base_dir': '/var/codereview/git/',
         'regex': re.compile('^((ssh://code\.(?:example\.com)/)?/var/codereview/git/|git\+)(.+)$'),
         'supports_direct_export': False,
+        'supports_simple_cloning': True,
         'default_branch': 'master',
     }
 }
