@@ -165,6 +165,34 @@ def get_complete_diff(target, target_revision, source, source_revision):
         raise
 
 
+def get_source_target_revisions(source, source_revision, target, target_revision, supports_simple_cloning):
+    """Get source and target revisions.
+    :param source: `VersionControlSystem` object of the source repo
+    :param source_revision: `string` source repository revision, can be branch name, or hash, or bookmark
+    :param target: `VersionControlSystem` object of the target repo
+    :param target_revision: `string` target repository revision, can be branch name, or hash, or bookmark
+    :param supports_simple_cloning: `bool` True if source repo support simple cloning,
+        so we can use it to get target revision (hash) from target branch
+    :return: `tuple` in form ('source_revision_hash', 'target_revision_hash')
+    """
+
+    target_revision = target.CheckRevision().strip()
+
+    if supports_simple_cloning:
+        # get the target revision from source repo, to prevent potential phishing on the target branch in the source
+        source.base_rev = target_revision
+        try:
+            target_revision = source.CheckRevision().strip()
+        except Exception:
+            # branch is not there, use target repo's branch then
+            pass
+
+    source.base_rev = source_revision
+    source_revision = source.CheckRevision().strip()
+
+    return source_revision, target_revision
+
+
 def generate_diff(original_branch, feature_branch):
     """Get full diff between given original and feature branches.
 
@@ -176,13 +204,8 @@ def generate_diff(original_branch, feature_branch):
     source_vcs, source_url, source_revision, source_branch_is_local, supports_simple_cloning = parse_branch_vcs_info(
         feature_branch, settings.FEATURE_BRANCH_DEFAULT_PREFIX)
 
-    if supports_simple_cloning:
-        target_branch_default_prefix = '{0}+{1}#'.format(source_vcs, source_url)
-    else:
-        target_branch_default_prefix = settings.ORIGINAL_BRANCH_DEFAULT_PREFIX
-
     target_vcs, target_url, target_revision, target_branch_is_local, _ = parse_branch_vcs_info(
-        original_branch, target_branch_default_prefix)
+        original_branch, settings.ORIGINAL_BRANCH_DEFAULT_PREFIX)
 
     log('source revision: %s' % source_revision)
     log('target revision: %s' % target_revision)
@@ -193,21 +216,22 @@ def generate_diff(original_branch, feature_branch):
         attrdict({'revision': source_revision, 'vcs': source_vcs}), source_url)
     target_path = source_path = None
     try:
-        if not source_branch_is_local:
-            source_path = os.path.join(settings.TEMP_FOLDER, uuid.uuid4().hex)
-            if not os.path.exists(source_path):
-                os.makedirs(source_path)
-            source = source.Clone(source_path)
-            source.Checkout()
-        source_revision = source.CheckRevision().strip()
-
         if not target_branch_is_local:
             target_path = os.path.join(settings.TEMP_FOLDER, uuid.uuid4().hex)
             if not os.path.exists(target_path):
                 os.makedirs(target_path)
             target = target.Clone(target_path)
             target.Checkout()
-        target_revision = target.CheckRevision().strip()
+
+        if not source_branch_is_local:
+            source_path = os.path.join(settings.TEMP_FOLDER, uuid.uuid4().hex)
+            if not os.path.exists(source_path):
+                os.makedirs(source_path)
+            source = source.Clone(source_path)
+            source.Checkout()
+
+        source_revision, target_revision = get_source_target_revisions(
+            source, source_revision, target, target_revision, supports_simple_cloning)
 
         complete_diff, target_export_path, source_export_path = get_complete_diff(
             target, target_revision, source, source_revision)

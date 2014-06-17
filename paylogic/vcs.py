@@ -1263,8 +1263,6 @@ class GitVCS(VersionControlSystem):
             silent_ok=True)
         target = GitVCS(self.options, dest)
 
-        # is not needed anymore with hg 1.9
-        # target.Pull(self, '-B', 'master')
         return target
 
     def Checkout(self):
@@ -1274,13 +1272,14 @@ class GitVCS(VersionControlSystem):
             silent_ok=True)
 
     def CheckRevision(self):
-        if not os.path.exists(self.repo_dir):
-            out = RunShell(['git', 'ls-remote', self.repo_dir, self.base_rev],
-                           silent_ok=True, ignore_stderr=True, ).split()[0].strip()
-        else:
-            out = RunShell(['git', 'rev-parse', self.base_rev],
+        try:
+            out = RunShell(['git', 'rev-parse', self.base_rev, '--'],
                            cwd=self.repo_dir,
                            silent_ok=False, ignore_stderr=False, )
+        except Exception:
+            # Not a local branch? Try remote one
+            out = RunShell(['git', 'ls-remote', self.repo_dir, self.base_rev],
+                           silent_ok=True, ignore_stderr=True, ).split()[0].strip()
         if not out:
             raise Exception('%s: revision %s is not found' %
                             (self.repo_dir, self.base_rev))
