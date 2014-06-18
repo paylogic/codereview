@@ -31,7 +31,6 @@ handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT, None))
 logging.root.addHandler(handler)
 
 BINARY_FILES_PATH = os.path.join(settings.MEDIA_ROOT, 'binary_files')
-CDATA_RE = re.compile('[\[CDATA\]]')
 
 
 def token_required(func):
@@ -264,9 +263,9 @@ def get_fogbugz_case_info(case_number):
     return (
         case_number,
         resp.stitle.string,
-        CDATA_RE.sub('', getattr(resp, settings.FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID).string or ''),
-        CDATA_RE.sub('', getattr(resp, settings.FOGBUGZ_FEATURE_BRANCH_FIELD_ID).string or ''),
-        CDATA_RE.sub('', getattr(resp, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string or '')
+        getattr(resp, settings.FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID).string,
+        getattr(resp, settings.FOGBUGZ_FEATURE_BRANCH_FIELD_ID).string,
+        getattr(resp, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string
     )
 
 
