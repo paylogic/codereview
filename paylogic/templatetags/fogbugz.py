@@ -41,8 +41,8 @@ def create_codereview_if_neccessary_message(request, issue):
 
         if issue.latest_patch_rev != source_revision:
             messages_api.warning(
-                request, 'There are commits after latest patchset created. '
-                'Please create <a href="{0}?case={1}">new one</a>'.format(
+                request, 'There are commits after the latest created patchset. '
+                'Please create a <a href="{0}?case={1}">new one</a>'.format(
                     reverse('process_from_fogbugz'),
                     case_id
                 )
