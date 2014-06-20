@@ -298,6 +298,9 @@ def get_issue(request, case_number, case_title):
 
         if issue.subject != issue_desc_complete:
             issue.subject = issue_desc_complete
+
+        if issue.description != issue_desc_complete:
+            issue.description = issue_desc_complete
     else:
         log("Creating issue instance")
         issue = models.Issue(subject=issue_desc_complete,
@@ -407,13 +410,13 @@ def process_codereview_from_fogbugz(request):
 
         db.put(patches)
         fill_original_files(patches, target_export_path, source_export_path)
-        issue.processing = False
-        issue.save()
         return HttpResponseRedirect('/%s/show' % issue.id)
     finally:
         for path in target_export_path, source_export_path:
             if path:
                 shutil.rmtree(path, ignore_errors=True)
+        issue.processing = False
+        issue.save()
 
 
 @views.login_required
