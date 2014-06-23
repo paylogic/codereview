@@ -100,7 +100,7 @@ This can be done by copying example one:
 
 ::
 
-    cp paylogic/local_settings_example.py paylogic/local_settings.py
+    cp paylogic/settings_local_example.py paylogic/settings_local.py
 
 
 The most important settings are:
