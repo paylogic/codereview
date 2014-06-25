@@ -1124,7 +1124,7 @@ class GitVCS(VersionControlSystem):
         if 'GIT_EXTERNAL_DIFF' in env:
             del env['GIT_EXTERNAL_DIFF']
         gitdiff = RunShell(
-            ['git', 'diff', '--no-ext-diff', '--full-index', '-M'] +
+            ['git', 'diff', '--no-ext-diff', '--full-index', '--no-index', '-M'] +
             extra_args,
             env=env, cwd=self.repo_dir, check_returncode=check_returncode)
 

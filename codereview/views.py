@@ -2129,6 +2129,9 @@ def _patchset_delete(ps_delete, patches):
       patches: Patches that have delta against patches of ps_delete.
 
     """
+    for patch in models.Patch.objects.filter(patchset=ps_delete):
+        db.delete(patch)
+
     patchset_id = ps_delete.key().id()
     tbp = []
     for patch in patches:
