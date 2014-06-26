@@ -1,6 +1,10 @@
 Changelog
 =========
 
+25-06-2014
+    - Fix 'delete patchset'.
+      (esjee)
+
 16-06-2014
     - Added a question to create patchset when there are commits after latest patchset in the issue.
       (bubenkoff)
