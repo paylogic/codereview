@@ -10,9 +10,6 @@
     <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/select2.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/heavy_data.js"></script>
-    {% if issue and not issue.closed %}
-        {% create_codereview_if_neccessary_message request issue %}
-    {% endif %}
 {%endblock%}
 
 {%block mainmenu%}
@@ -125,13 +122,14 @@
           </div>
 
           {% comment %}Gatekeeper approval code, Paylogic specific.{% endcomment %}
-          <div><b>Latest patchset:</b><br/>
+            {% create_codereview_if_neccessary_message request issue %}
+            <div><b>Latest patchset:</b><br/>
               Number: <a onclick="$('toggled-section.opentriangle').click(); $('#ps-{{ issue.latest_patchset.id}}-pointer').click(); return false" href="#ps{{ issue.latest_patchset.id}}">{{ issue.latest_patchset_number }}</a><br/>
               Revision: {{ issue.latest_patch_rev }}
-          </div>
-          {% if perms.codereview.approve_patchset and issue.latest_reviewed_rev != issue.latest_patch_rev %}
+            </div>
+            {% if perms.codereview.approve_patchset and issue.latest_reviewed_rev != issue.latest_patch_rev %}
             {% gatekeeper_approve_form request %}
-          {% endif %}
+            {% endif %}
           <div><b>Latest approved patchset:</b><br/>
               Number: <a onclick="$('toggled-section.opentriangle').click(); $('#ps-{{ issue.latest_approved_patchset.id}}-pointer').click(); return false" href="#ps{{ issue.latest_approved_patchset.id}}">{{ issue.latest_approved_patchset_number }}</a><br/>
               Revision: {{ issue.latest_reviewed_rev }}
