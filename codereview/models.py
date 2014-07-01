@@ -871,7 +871,7 @@ class Account(db.Model):
             xsrf_secret = os.urandom(8)
             self.xsrf_secret = xsrf_secret
             self.put()
-        m = md5.new(
+        m = md5(
             force_unicode(self.xsrf_secret).encode('utf-8') if isinstance(self.xsrf_secret, unicode)
             else self.xsrf_secret)
         email_str = self.lower_email
