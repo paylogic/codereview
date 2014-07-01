@@ -39,19 +39,7 @@ To set up the development environment, run:
 
 ::
 
-    make develop pip_args="--index-url=<pypi index containing custom package versions>"
-
-Several python dependencies are for now released only to our corporate pypi index, which is not public.
-However, the code of those version is absolutely public, because it's just forks & fixes.
-Here is the list of repository locations:
-
-* django-gae2django==0.2paylogic2 - https://code.google.com/r/bubenkoff-gae2django/source/browse/?name=urlquote-login-urls
-
-* django-openid-auth==0.5paylogic4 - https://code.launchpad.net/~bubenkoff/django-openid-auth/paylogic
-
-* python-openid==2.2.5google - https://github.com/paylogic/python-openid/tree/google
-
-Until we'll make public corporate pypi server, you can make your own releases or just install them in editable mode
+    make develop
 
 
 Then, to run the codereview server:
@@ -61,6 +49,14 @@ Then, to run the codereview server:
     env/bin/python manage.py runserver
 
 Open a browser, go to http://127.0.0.1:8000/ and you can use the codereview tool.
+
+If you'll use openid for authentication, you'll need to grant some permissions for your user(s):
+
+* `codereview.add_issue` - create issue
+* `codereview.view_issue` - view issue
+* `codereview.change_comment` - change comment
+* `codereview.add_comment` - add comment
+* `codereview.approve_patchset` - approve patchset (by Gatekeepers)
 
 
 Production Deployment
