@@ -4,7 +4,7 @@ python_version := 2.6
 cov_report := html
 pip_args :=
 
-.PHONY: test clean build
+.PHONY: test clean
 
 env:
 ifndef local_env
@@ -36,7 +36,7 @@ coveralls:
 clean:
 	-rm -rf ./build
 
-build:
+build: clean
 	pip install -r requirements.txt --target=./build $(pip_args)
 	cp -R codereview paylogic *.py rietveld_helper static templates ./build/
 	cd build; python manage.py collectstatic --noinput --settings=paylogic.settings_build
