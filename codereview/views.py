@@ -26,7 +26,7 @@ import random
 import re
 import urllib
 from cStringIO import StringIO
-from xml.etree import ElementTree
+from lxml import etree as ElementTree
 import mimetypes
 
 from google.appengine.api import mail
@@ -2542,8 +2542,8 @@ def _get_skipped_lines_response(rows, id_before, id_after, where, context):
     id_before_start = int(id_before)
     id_after_end = int(id_after)
     if context is not None:
-        id_before_end = id_before_start + context
         id_after_start = id_after_end - context
+        id_before_end = id_before_start + context
     else:
         id_before_end = id_after_start = None
 
@@ -2568,10 +2568,12 @@ def _get_skipped_lines_response(rows, id_before, id_after, where, context):
 
     # Create a usable structure for the JS part
     response = []
-    response_rows = [_strip_invalid_xml(r) for r in response_rows]
+    response_rows = (_strip_invalid_xml(r) for r in response_rows)
     dom = ElementTree.parse(StringIO('<div>%s</div>' % "".join(response_rows)))
-    for node in dom.getroot().getchildren():
-        content = [[x.items(), x.text] for x in node.getchildren()]
+    for node in dom.getroot().iterchildren():
+        content = [
+            [x.items(), (x.text or '') + ''.join([ElementTree.tostring(y) for y in x.iterchildren()])]
+            for x in node.iterchildren()]
         response.append([node.items(), content])
     return response
 

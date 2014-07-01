@@ -35,10 +35,12 @@ class FetchError(Exception):
 
     """Exception raised by FetchBase() when a URL problem occurs."""
 
+    pass
+
 
 # NOTE: The SplitPatch function is duplicated in upload.py, keep them in sync.
 def SplitPatch(data):
-    """Splits a patch into separate pieces for each file.
+    """Split a patch into separate pieces for each file.
 
     Args:
       data: A string containing the output of svn diff.
@@ -662,20 +664,16 @@ def _RenderDiffColumn(line_valid, tag, ndigits, lineno, begin, end,
     """
     if line_valid:
         cls_attr = '%s%s' % (prefix, tag)
-        if tag == 'equal':
-            lno = '%*d' % (ndigits, lineno)
-        else:
-            lno = _MarkupNumber(ndigits, lineno, 'u')
         if tag == 'replace':
-            col_content = ('%s%s %s%s' % (begin, lno, end, intra_diff))
+            col_content = ('%s %s%s' % (begin, end, intra_diff))
             # If IR diff has been turned off or there is no matching new line at
             # the end then switch to dark background CSS style.
             if not do_ir_diff or not has_newline:
                 cls_attr = cls_attr + '1'
         else:
-            col_content = '%s %s' % (lno, intra_diff)
-        return '<td class="%s" id="%scode%d"><code class="prettyprint">%s</code></td>' % (
-            cls_attr, prefix, lineno, col_content)
+            col_content = intra_diff
+        return '<td class="%s" id="%scode%d">%s <code class="prettyprint">%s</code></td>' % (
+            cls_attr, prefix, lineno, lineno, col_content)
     else:
         return '<td class="%sblank"></td>' % prefix
 

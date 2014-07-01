@@ -2625,9 +2625,10 @@ function M_dashboardKeyDown(evt) {
  * Helper to fill a table cell element.
  * @param {Array} attrs An array of attributes to be applied
  * @param {String} text The content of the table cell
+ * @param {bool} as_html The content of the table cell is html
  * @return {Element}
  */
-function M_fillTableCell_(attrs, text) {
+function M_fillTableCell_(attrs, text, as_html) {
   var td = document.createElement("td");
   for (var j=0; j<attrs.length; j++) {
     if (attrs[j][0] == "class" && M_isIE()) {
@@ -2637,10 +2638,15 @@ function M_fillTableCell_(attrs, text) {
     }
   }
   if (!text) text = "";
-  if (M_isIE()) {
-    td.innerText = text;
-  } else {
-    td.textContent = text;
+  if (as_html) {
+    td.innerHTML = text
+  }
+  else {
+      if (M_isIE()) {
+        td.innerText = text;
+      } else {
+        td.textContent = text;
+      }
   }
   return td;
 }
@@ -2694,8 +2700,8 @@ function M_expandSkipped(id_before, id_after, where, id_skip) {
 	      tr.parentNode.insertBefore(row, tr.nextSibling);
 	    }
           }
-          var left = M_fillTableCell_(data[1][0][0], data[1][0][1]);
-          var right = M_fillTableCell_(data[1][1][0], data[1][1][1]);
+          var left = M_fillTableCell_(data[1][0][0], data[1][0][1], true);
+          var right = M_fillTableCell_(data[1][1][0], data[1][1][1], true);
           row.appendChild(left);
           row.appendChild(right);
 	  last_row = row;
@@ -2733,6 +2739,7 @@ function M_expandSkipped(id_before, id_after, where, id_skip) {
         } else {
           tr.parentNode.removeChild(tr);
         }
+        prettyPrint();
 	hookState.updateHooks();
         if (hookState.hookPos != -2 &&
 	    M_isElementVisible(window, hookState.indicator)) {

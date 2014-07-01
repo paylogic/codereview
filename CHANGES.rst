@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1-07-2014
+    - Fixed broken code expansion.
+      (bubenkoff)
+
 25-06-2014
     - Fix 'delete patchset'.
       (esjee)
