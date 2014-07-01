@@ -15,7 +15,7 @@
 """App Engine data model (schema) definition for Rietveld."""
 
 import logging
-import md5
+from hashlib import md5
 import os
 import re
 import time
