@@ -147,11 +147,7 @@ LOGIN_REDIRECT_URL = '/'
 # This won't work with gae2django.
 RIETVELD_INCOMING_MAIL_ADDRESS = None
 
-import subprocess32
-
-RIETVELD_REVISION = subprocess32.check_output(
-    ['echo "`git rev-parse --abbrev-ref HEAD`: `git rev-parse HEAD`"'],
-    shell=True)
+RIETVELD_REVISION = open(os.path.join(ROOT, 'VERSION')).read().strip()
 
 UPLOAD_PY_SOURCE = os.path.join(ROOT, 'upload.py')
 

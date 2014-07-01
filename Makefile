@@ -37,6 +37,8 @@ clean:
 	-rm -rf ./build
 
 build: clean
+	mkdir -p ./build
+	echo "`git rev-parse --abbrev-ref HEAD`: `git rev-parse HEAD`" > ./build/VERSION
 	pip install -r requirements.txt --target=./build $(pip_args)
 	cp -R codereview paylogic *.py rietveld_helper static templates ./build/
 	cd build; python manage.py collectstatic --noinput --settings=paylogic.settings_build
