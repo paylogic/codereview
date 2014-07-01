@@ -1,12 +1,14 @@
+"""WSGI application script."""
 import os
 import sys
 
 # os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
-sys.path.append(
+sys.path.insert(
+    0,
     os.path.abspath(
         os.path.dirname(__file__)
     ))
-sys.path.append(os.path.dirname(__file__))
+sys.path.insert(1, os.path.dirname(__file__))
 
 import gae2django
 # Use gae2django.install(server_software='Dev') to enable a link to the
