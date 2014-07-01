@@ -4,7 +4,7 @@ python_version := 2.6
 cov_report := html
 pip_args :=
 
-.PHONY: test clean
+.PHONY: test clean build
 
 env:
 ifndef local_env
