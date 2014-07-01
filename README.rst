@@ -85,7 +85,7 @@ web server. Use ``build/wsgi.py`` file as WSGI script.
 
 There is one important thing to remember. Django serves media (static) files
 only in development mode. For running Rietveld in a production environment,
-you need to setup your web-server to serve the /static/ alias directly from the ./build/static_build folder.
+you need to setup your web-server to serve the /static/ alias directly from the ``./build/static_build`` folder.
 
 http://docs.djangoproject.com/en/dev/howto/deployment/modpython/#serving-media-files
 
