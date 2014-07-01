@@ -164,7 +164,7 @@ var publish_link = "{%url codereview.views.publish issue.key.id%}";
 {%if is_dev%}
 <div style="float:left; color:green; font-weight:bold">DEVELOPMENT SERVER</div>
 {%else%}
-<div style="float:left; font-weight:bold"><i>Rietveld</i> Code Review Tool</div>
+<div style="float:left; font-weight:bold"><i>Paylogic</i> Code Review Tool</div>
 {%endif%}
 {%if special_banner%}
 <div style="float:left;
@@ -179,7 +179,7 @@ var publish_link = "{%url codereview.views.publish issue.key.id%}";
 {%if user%}
 <b>{{user.email}} ({%nickname user True%})</b>
 |
-{%if must_choose_nickname%}
+{%if must_choose_nickname and not user.nickname%}
 <span style="color:red">Please choose your nickname with</span>{%endif%}
 <a class="novisit" href="{%url codereview.views.settings%}">Settings</a>
 |
@@ -196,13 +196,10 @@ var publish_link = "{%url codereview.views.publish issue.key.id%}";
    href="http://code.google.com/p/rietveld/wiki/CodeReviewHelp">Help</a>
 |
 <a class="novisit" target="_blank"
-   href="http://code.google.com/p/rietveld/issues/list">Bug tracker</a>
+   href="https://github.com/paylogic/codereview/issues">Issues</a>
 |
 <a class="novisit" target="_blank"
-   href="http://groups.google.com/group/codereview-discuss">Discussion group</a>
-|
-<a class="novisit" target="_blank"
-   href="http://code.google.com/p/rietveld">Source code</a>
+   href="https://github.com/paylogic/codereview">Source code</a>
 |
 {%if user%}
 <a class="novisit" href="{{sign_out}}">Sign out</a>
@@ -237,12 +234,6 @@ var publish_link = "{%url codereview.views.publish issue.key.id%}";
 {%block popup%}{%endblock%}
 
 <p></p>
-<div style="float: left;">
-  <a target="_blank" href="http://code.google.com/appengine/"><img border="0"
-   src="{{media_url}}appengine-noborder-120x30.gif"
-   alt="Powered by Google App Engine" /></a>
-</div>
-
 <div class="extra" style="font-size: 9pt; float: right; text-align: right;">
   <div style="height:14px;">
   <img src="{{media_url}}rss.gif" alt="RSS Feeds" width="14" height="14"
@@ -261,7 +252,7 @@ var publish_link = "{%url codereview.views.publish issue.key.id%}";
   <a href="{%url django.contrib.syndication.views.feed url="issue"%}/{{issue.key.id}}">This issue</a>
   {%endif%}
   </div>
-  <div style="margin-top: .3em;">This is Rietveld <a href='http://code.google.com/p/rietveld/updates/list'>{{rietveld_revision}}</a></div>
+  <div style="margin-top: .3em;">This is Paylogic Codereview <a href='https://github.com/paylogic/codereview'>{{rietveld_revision}}</a></div>
 </div>
 
 {%if not is_dev%}

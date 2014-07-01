@@ -4,6 +4,8 @@ Changelog
 1-07-2014
     - Fixed broken code expansion.
       (bubenkoff)
+    - Added revision to the bottom of the page, changed base template to mention paylogic codereview.
+      (bubenkoff)
 
 25-06-2014
     - Fix 'delete patchset'.

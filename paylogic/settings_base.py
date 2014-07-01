@@ -1,4 +1,4 @@
-# Django settings for django_gae2django project.
+"""Django settings for django_gae2django project."""
 
 # NOTE: Keep the settings.py in examples directories in sync with this one!
 # from settings import *
@@ -147,7 +147,11 @@ LOGIN_REDIRECT_URL = '/'
 # This won't work with gae2django.
 RIETVELD_INCOMING_MAIL_ADDRESS = None
 
-RIETVELD_REVISION = ''
+import subprocess32
+
+RIETVELD_REVISION = subprocess32.check_output(
+    ['echo "`git rev-parse --abbrev-ref HEAD`: `git rev-parse HEAD`"'],
+    shell=True)
 
 UPLOAD_PY_SOURCE = os.path.join(ROOT, 'upload.py')
 
@@ -219,6 +223,6 @@ DEFAULT_MAIL_CC = 'fogbugz@example.com'
 statsd.Connection.set_defaults(host='localhost', port=8125)
 
 try:
-    from paylogic.settings_local import *
+    from paylogic.settings_local import *  # NOQA
 except ImportError:
     pass
