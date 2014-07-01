@@ -13,3 +13,4 @@ dev.db
 .tox/
 .coverage
 htmlcov/
+/build

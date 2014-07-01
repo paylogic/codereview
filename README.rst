@@ -64,15 +64,28 @@ Production Deployment
 
 ::
 
-    pip install -r requirements.txt
+    make build pip_args="--index-url <pypi index containing custom package versions>"
+
+This command will make ./build folder containing all needed to run the application.
+
+Several python dependencies are for now released only to our corporate pypi index, which is not public.
+However, the code of those version is absolutely public, because it's just forks & fixes.
+Here is the list of repository locations:
+
+* django-gae2django==0.2paylogic2 - https://code.google.com/r/bubenkoff-gae2django/source/browse/?name=urlquote-login-urls
+
+* django-openid-auth==0.5paylogic4 - https://code.launchpad.net/~bubenkoff/django-openid-auth/paylogic
+
+* python-openid==2.2.5google - https://github.com/paylogic/python-openid/tree/google
+
+Until we'll make public corporate pypi server, you can make your own releases or just install them in editable mode
 
 The preferred method to deploy Django applications is to use WSGI supporting
-web server. You may copy codereview.wsgi.example and edit it to change
-/var/rietveld path to point to your installation.
+web server. Use ``build/wsgi.py`` file as WSGI script.
 
 There is one important thing to remember. Django serves media (static) files
 only in development mode. For running Rietveld in a production environment,
-you need to setup your web-server to serve the /static/ alias directly.
+you need to setup your web-server to serve the /static/ alias directly from the ./build/static folder.
 
 http://docs.djangoproject.com/en/dev/howto/deployment/modpython/#serving-media-files
 

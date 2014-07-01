@@ -37,7 +37,7 @@ clean:
 	-rm -rf ./build
 
 build:
-	pip install -r requirements.txt --target=./build
+	pip install -r requirements.txt --target=./build $(pip_args)
 	cp -R codereview paylogic *.py rietveld_helper static templates ./build/
 	cd build; python manage.py collectstatic --noinput --settings=paylogic.settings_build
 
