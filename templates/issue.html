@@ -1,5 +1,9 @@
 {%extends "issue_base.html"%}
-
+{% load fogbugz %}
+{% block messages %}
+    {% create_codereview_if_neccessary_message request issue %}
+    {{block.super}}
+{% endblock %}
 {%block issue_body%}
 {%if issue.draft_count or has_draft_message%}
   <div class="error">

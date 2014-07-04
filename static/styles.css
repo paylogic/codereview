@@ -891,3 +891,8 @@ ul.errorlist li {
 .select2-container div {
     margin-top: auto;
 }
+
+.prettyprint li {
+    list-style-type: decimal !important;
+    background-color: inherit !important;
+}

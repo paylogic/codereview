@@ -672,7 +672,7 @@ def _RenderDiffColumn(line_valid, tag, ndigits, lineno, begin, end,
                 cls_attr = cls_attr + '1'
         else:
             col_content = intra_diff
-        return '<td class="%s" id="%scode%d">%s <code class="prettyprint">%s</code></td>' % (
+        return '<td class="%s" id="%scode%d"><code class="prettyprint linenums:%s">%s</code></td>' % (
             cls_attr, prefix, lineno, lineno, col_content)
     else:
         return '<td class="%sblank"></td>' % prefix

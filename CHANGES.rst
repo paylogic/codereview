@@ -1,6 +1,12 @@
 Changelog
 =========
 
+4-07-2014
+    - Line numbers provided by prettifyjs
+      (bubenkoff)
+    - New commits warning message only shows up on issue view, corrected the time when it appears
+      (bubenkoff)
+
 1-07-2014
     - Fixed broken code expansion.
       (bubenkoff)

@@ -122,7 +122,6 @@
           </div>
 
           {% comment %}Gatekeeper approval code, Paylogic specific.{% endcomment %}
-            {% create_codereview_if_neccessary_message request issue %}
             <div><b>Latest patchset:</b><br/>
               Number: <a onclick="$('toggled-section.opentriangle').click(); $('#ps-{{ issue.latest_patchset.id}}-pointer').click(); return false" href="#ps{{ issue.latest_patchset.id}}">{{ issue.latest_patchset_number }}</a><br/>
               Revision: {{ issue.latest_patch_rev }}

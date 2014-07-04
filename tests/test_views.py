@@ -1,8 +1,6 @@
 """Codereview views tests."""
 import pytest
 
-from django.conf import settings
-
 
 @pytest.mark.parametrize('user_permissions', ([],))
 def test_index(app, issue):
@@ -36,7 +34,7 @@ def test_diff(app, issue, patchset, patch, patch_filename, patch_text, patch_con
     """Test diff view."""
     response = app.get('/{issue.id}/diff/{patchset.id}/{patch_filename}'.format(**locals()))
     assert patch_filename in response.pyquery('h2').text()
-    assert 'OLD NEW (Empty) 1 {patch_content} OLD NEW'.format(
+    assert 'OLD NEW (Empty) {patch_content} OLD NEW'.format(
         patch_content=patch_content) in response.pyquery('#thecode').text()
 
 
@@ -44,7 +42,7 @@ def test_diff2(app, issue, patchset, patch, patch_filename, patch_text, patch_co
     """Test delta diff view."""
     response = app.get('/{issue.id}/diff2/{patchset.id}:{patchset.id}/{patch_filename}'.format(**locals()))
     assert patch_filename in response.pyquery('h2').text()
-    assert 'LEFT RIGHT 1 {patch_content} 1 {patch_content} LEFT RIGHT'.format(
+    assert 'LEFT RIGHT {patch_content} {patch_content} LEFT RIGHT'.format(
         patch_content=patch_content) in response.pyquery('#thecode').text()
 
 
