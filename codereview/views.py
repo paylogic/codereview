@@ -74,7 +74,7 @@ if not django.template.libraries.get(_library_name, None):
 
 IS_DEV = os.environ['SERVER_SOFTWARE'].startswith('Dev')  # Development server
 # Maximum forms fields length
-MAX_SUBJECT = 100
+MAX_SUBJECT = 255
 MAX_DESCRIPTION = 10000
 MAX_URL = 2083
 MAX_REVIEWERS = 1000
