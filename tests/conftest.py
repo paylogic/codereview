@@ -1,3 +1,4 @@
+"""General tests config."""
 import os.path
 import re
 import sys
@@ -80,12 +81,6 @@ def source_repo_name(vcs):
     return 'source'
 
 
-@pytest.fixture(params=['git', 'hg', 'bzr'])
-def vcs(request):
-    """Version control system to test support of."""
-    return request.param
-
-
 @pytest.fixture
 def repo_base_dir(tmpdir, vcs):
     """Repository base dir."""
@@ -124,12 +119,6 @@ def vcs_commands(vcs):
             'commit': ['bzr', 'commit', '-m', '"test commit"']
         },
     }[vcs]
-
-
-@pytest.fixture(params=['short', 'medium', 'long'])
-def branch_url_mode(request):
-    """Branch url mode. In short one, default prefixes will be used."""
-    return request.param
 
 
 @pytest.fixture
