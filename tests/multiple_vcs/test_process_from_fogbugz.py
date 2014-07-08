@@ -24,7 +24,7 @@ def test_process_codereview_from_fogbugz(
     issue_id = match.args[0]
     issue = models.Issue.objects.get(id=issue_id)
     assert len(issue.patchsets) == 1
-    patches = issue.patchsets[0].patch_set.all()
+    patches = sorted(issue.patchsets[0].patch_set.all(), key=lambda patch: patch.filename)
     assert len(patches) == 2
 
     assert patches[0].filename == source_test_file_name
@@ -38,26 +38,3 @@ def test_process_codereview_from_fogbugz(
     assert patches[1].content.text == target_test_file_content
     assert patches[1].patched_content.text == target_test_file_source_content
     assert target_test_file_source_content in patches[1].text
-
-
-def test_process_codereview_from_fogbugz_processing(
-        user, rf, target_test_file_name, target_test_file_content, target_test_file_source_content,
-        source_test_file_name, source_test_file_content, mocked_fogbugz_info, case_id):
-    """Test creating issue using the data from fogbugz case when there is another process doing the same."""
-    request = rf.get(urlresolvers.reverse('process_from_fogbugz') + '?' + urllib.urlencode(dict(case=case_id)))
-    request.user = user
-    response = views.process_codereview_from_fogbugz(request)
-    url = response._headers['location'][1]
-    match = urlresolvers.resolve(url)
-    issue_id = match.args[0]
-
-    db.connection.cursor().execute(
-        'update codereview_issue set processing=%s where id=%s', [
-            True,
-            issue_id
-        ])
-
-    # now try to process codereview immediately again, it should fail
-    with pytest.raises(RuntimeError) as exc_info:
-        views.process_codereview_from_fogbugz(request)
-    assert exc_info.value.args == ('Cannot handle multiple submit requests for the same Fogbugz case.',)

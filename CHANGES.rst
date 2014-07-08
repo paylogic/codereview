@@ -1,6 +1,12 @@
 Changelog
 =========
 
+8-07-2014
+    - Use common ancestor revision as target when getting diff
+      (bubenkoff)
+    - Use vcs-specific approach to get the diff instead of comparing exports
+      (bubenkoff)
+
 4-07-2014
     - Line numbers provided by prettifyjs
       (bubenkoff)

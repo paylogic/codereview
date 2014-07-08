@@ -147,16 +147,16 @@ def get_complete_diff(target, target_revision, source, source_revision):
         log("Exported source")
         log("Generating diff with target_revision={target_revision}, source_revision={source_revision}".format(
             target_revision=target_revision, source_revision=source_revision))
-        complete_diff = (
-            GitVCS(attrdict({'revision': target_revision}),
-                   target_export_path)
-            .GenerateDiff(source_path=source_export_path, files_to_skip=settings.CODEREVIEW_IGNORED_FILES))
+        complete_diff = source.GenerateDiff(target_revision, source_revision)
+        # complete_diff = GitVCS(attrdict({'revision': target_revision}),
+        #            target_export_path)
+        #     .GenerateDiff(source_path=source_export_path, files_to_skip=settings.CODEREVIEW_IGNORED_FILES))
         log("Finished generating diff!")
         return complete_diff, target_export_path, source_export_path
     except Exception:
         # on any error, clean up temporary export folders
         for path in target_export_path, source_export_path:
-            if path:
+            if path and not settings.DEBUG:
                 log("Cleaning up temporary export {0}".format(path))
                 shutil.rmtree(path, ignore_errors=True)
                 log("Finished cleaning up temporary export {0}".format(path))
@@ -173,20 +173,11 @@ def get_source_target_revisions(source, source_revision, target, target_revision
         so we can use it to get target revision (hash) from target branch
     :return: `tuple` in form ('source_revision_hash', 'target_revision_hash')
     """
-
     target_revision = target.CheckRevision().strip()
+    source_revision = source.CheckRevision().strip()
 
     if supports_simple_cloning:
-        # get the target revision from source repo, to prevent potential phishing on the target branch in the source
-        source.base_rev = target_revision
-        try:
-            target_revision = source.CheckRevision().strip()
-        except RuntimeError:
-            # branch is not there, use target repo's branch then
-            pass
-
-    source.base_rev = source_revision
-    source_revision = source.CheckRevision().strip()
+        target_revision = source.GetCommonAncestor(target_revision)
 
     return source_revision, target_revision
 
@@ -238,7 +229,7 @@ def generate_diff(original_branch, feature_branch):
             source_revision, source_export_path)
     finally:
         for path in target_path, source_path:
-            if path:
+            if path and not settings.DEBUG:
                 log("Cleaning up temporary clone {0}".format(path))
                 shutil.rmtree(path, ignore_errors=True)
                 log("Finished cleaning up temporary clone {0}".format(path))
@@ -413,7 +404,7 @@ def process_codereview_from_fogbugz(request):
         return HttpResponseRedirect('/%s/show' % issue.id)
     finally:
         for path in target_export_path, source_export_path:
-            if path:
+            if path and not settings.DEBUG:
                 shutil.rmtree(path, ignore_errors=True)
         issue.processing = False
         issue.save()

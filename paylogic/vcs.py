@@ -657,6 +657,12 @@ class VersionControlSystem(object):
         self.subdir = cwd[len(self.repo_dir):].lstrip(r"\/")
         if self.options.get('revision'):
             self.base_rev = self.options.revision
+        # Map of filename -> (hash before, hash after) of base file.
+        # Hashes for "no such file" are represented as None.
+        self.hashes = {}
+        # Map of new filename -> old filename for renames.
+        self.renames = {}
+
 
     def GenerateDiff(self, args):
         """Return the current diff as a string.
@@ -800,6 +806,101 @@ class VersionControlSystem(object):
     def GetBranches(self):
         """Get repository branches."""
         raise NotImplementedError()
+
+    def GetCommonAncestor(self, revision):
+        """Get common ancestor of base revision and given revision."""
+        raise NotImplementedError()
+
+    def _check_file_name(self, filename, files_to_skip):
+        """Check if filename needs to be skept."""
+        for name in files_to_skip:
+            if fnmatch.fnmatch(filename, name):
+                return False
+        return True
+
+    def FormatDiff(self, gitdiff, source_path=None, files_to_skip=[]):
+        """Format given git diff to svn format."""
+        NULL_HASH = "0" * 40
+
+        def IsFileNew(filename):
+            return filename in self.hashes and self.hashes[filename][0] is None
+
+        def AddSubversionPropertyChange(filename):
+            """Add svn's property change information into the patch if given file is
+            new file.
+
+            We use Subversion's auto-props setting to retrieve its property.
+            See http://svnbook.red-bean.com/en/1.1/ch07.html#svn-ch-7-sect-1.3.2 for
+            Subversion's [auto-props] setting.
+            """
+            if self.options.emulate_svn_auto_props and IsFileNew(filename):
+                svnprops = GetSubversionPropertyChanges(filename)
+                if svnprops:
+                    svndiff.append("\n" + svnprops + "\n")
+
+        svndiff = []
+        filecount = 0
+        filename = None
+        skip_until_next_file_name = False
+        for line in gitdiff.splitlines():
+            match = re.match(r"diff --git a?/(.*) b/(.*)$", line)
+            old_context_match = re.match(r"--- a?/(.*)$", line)
+            new_context_match = re.match(r"\+\+\+ b?/(.*)$", line)
+            rename_match = re.match(r"rename from (.*)$", line)
+            if match:
+                skip_until_next_file_name = False
+                # Add auto property here for previously seen file.
+                # if filename is not None:
+                #   AddSubversionPropertyChange(filename)
+                # Intentionally use the "after" filename so we can show
+                # renames.
+                old_filename = match.group(1)
+                filename = match.group(2)
+                if source_path:
+                    for path in [source_path[1:] + os.path.sep, self.repo_dir[1:] + os.path.sep]:
+                        old_filename = old_filename.replace(path, '')
+                        filename = filename.replace(path, '')
+                    line = 'diff --git a/{old_filename} b/{filename}'.format(
+                        old_filename=old_filename, filename=filename)
+                if not self._check_file_name(filename, files_to_skip) or not self._check_file_name(
+                        old_filename, files_to_skip):
+                    skip_until_next_file_name = True
+                    continue
+                filecount += 1
+                svndiff.append("Index: %s\n" % filename)
+                if old_filename != filename:
+                    self.renames[filename] = old_filename
+            elif skip_until_next_file_name:
+                continue
+            elif rename_match:
+                line = 'rename from {old_filename}'.format(
+                    old_filename=old_filename)
+            elif old_context_match:
+                line = '--- {old_filename}'.format(
+                    old_filename=old_filename)
+            elif new_context_match:
+                line = '+++ {filename}'.format(
+                    filename=filename)
+            else:
+                # The "index" line in a git diff looks like this (long hashes elided):
+                #   index 82c0d44..b2cee3f 100755
+                # We want to save the left hash, as that identifies the base
+                # file.
+                match = re.match(r"index (\w+)\.\.(\w+)", line)
+                if match:
+                    before, after = (match.group(1), match.group(2))
+                    if before == NULL_HASH:
+                        before = None
+                    if after == NULL_HASH:
+                        after = None
+                    self.hashes[filename] = (before, after)
+            svndiff.append(line + "\n")
+        if not filecount:
+            ErrorExit("No valid patches found in output from git diff")
+        # Add auto property for the last seen file.
+        assert filename is not None
+        # AddSubversionPropertyChange(filename)
+        return "".join(svndiff)
 
 
 class SubversionVCS(VersionControlSystem):
@@ -1081,41 +1182,18 @@ class GitVCS(VersionControlSystem):
 
     """Implementation of the VersionControlSystem interface for Git."""
 
-    def __init__(self, options, repo_dir):
-        super(GitVCS, self).__init__(options, repo_dir)
-        # Map of filename -> (hash before, hash after) of base file.
-        # Hashes for "no such file" are represented as None.
-        self.hashes = {}
-        # Map of new filename -> old filename for renames.
-        self.renames = {}
-
-    def _check_file_name(self, filename, files_to_skip):
-        """Check if filename needs to be skept."""
-        for name in files_to_skip:
-            if fnmatch.fnmatch(filename, name):
-                return False
-        return True
-
-    def GenerateDiff(self, source_revision=None, source_path=None, files_to_skip=[]):
+    def GenerateDiff(self, target_revision, source_revision=None, source_path=None, files_to_skip=[]):
         # This is more complicated than svn's GenerateDiff because we must convert
         # the diff output to include an svn-style "Index:" line as well as record
         # the hashes of the files, so we can upload them along with our diff.
 
         # Special used by git to indicate "no such content".
-        NULL_HASH = "0" * 40
 
         check_returncode = False
 
         if source_path is not None:
             source_path = os.path.normpath(source_path)
-            extra_args = [self.repo_dir, source_path]
-        else:
-            if self.options.get('revision'):
-                extra_args = [
-                    self.options.revision, 'remotes/source/' + source_revision, '--']
-                check_returncode = True
-            else:
-                extra_args = [source_revision]
+        extra_args = [target_revision or self.base_rev, source_revision]
 
         # --no-ext-diff is broken in some versions of Git, so try to work around
         # this by overriding the environment (but there is still a problem if the
@@ -1124,89 +1202,10 @@ class GitVCS(VersionControlSystem):
         if 'GIT_EXTERNAL_DIFF' in env:
             del env['GIT_EXTERNAL_DIFF']
         gitdiff = RunShell(
-            ['git', 'diff', '--no-ext-diff', '--full-index', '--no-index', '-M'] +
+            ['git', 'diff', '--no-ext-diff', '--full-index', '-M'] +
             extra_args,
             env=env, cwd=self.repo_dir, check_returncode=check_returncode)
-
-        def IsFileNew(filename):
-            return filename in self.hashes and self.hashes[filename][0] is None
-
-        def AddSubversionPropertyChange(filename):
-            """Add svn's property change information into the patch if given file is
-            new file.
-
-            We use Subversion's auto-props setting to retrieve its property.
-            See http://svnbook.red-bean.com/en/1.1/ch07.html#svn-ch-7-sect-1.3.2 for
-            Subversion's [auto-props] setting.
-            """
-            if self.options.emulate_svn_auto_props and IsFileNew(filename):
-                svnprops = GetSubversionPropertyChanges(filename)
-                if svnprops:
-                    svndiff.append("\n" + svnprops + "\n")
-
-        svndiff = []
-        filecount = 0
-        filename = None
-        skip_until_next_file_name = False
-        for line in gitdiff.splitlines():
-            match = re.match(r"diff --git a/(.*) b/(.*)$", line)
-            old_context_match = re.match(r"--- a?/(.*)$", line)
-            new_context_match = re.match(r"\+\+\+ b?/(.*)$", line)
-            rename_match = re.match(r"rename from (.*)$", line)
-            if match:
-                skip_until_next_file_name = False
-                # Add auto property here for previously seen file.
-                # if filename is not None:
-                #   AddSubversionPropertyChange(filename)
-                # Intentionally use the "after" filename so we can show
-                # renames.
-                old_filename = match.group(1)
-                filename = match.group(2)
-                if source_path:
-                    for path in [source_path[1:] + os.path.sep, self.repo_dir[1:] + os.path.sep]:
-                        old_filename = old_filename.replace(path, '')
-                        filename = filename.replace(path, '')
-                    line = 'diff --git a/{old_filename} b/{filename}'.format(
-                        old_filename=old_filename, filename=filename)
-                if not self._check_file_name(filename, files_to_skip) or not self._check_file_name(
-                        old_filename, files_to_skip):
-                    skip_until_next_file_name = True
-                    continue
-                filecount += 1
-                svndiff.append("Index: %s\n" % filename)
-                if old_filename != filename:
-                    self.renames[filename] = old_filename
-            elif skip_until_next_file_name:
-                continue
-            elif rename_match:
-                line = 'rename from {old_filename}'.format(
-                    old_filename=old_filename)
-            elif old_context_match:
-                line = '--- {old_filename}'.format(
-                    old_filename=old_filename)
-            elif new_context_match:
-                line = '+++ {filename}'.format(
-                    filename=filename)
-            else:
-                # The "index" line in a git diff looks like this (long hashes elided):
-                #   index 82c0d44..b2cee3f 100755
-                # We want to save the left hash, as that identifies the base
-                # file.
-                match = re.match(r"index (\w+)\.\.(\w+)", line)
-                if match:
-                    before, after = (match.group(1), match.group(2))
-                    if before == NULL_HASH:
-                        before = None
-                    if after == NULL_HASH:
-                        after = None
-                    self.hashes[filename] = (before, after)
-            svndiff.append(line + "\n")
-        if not filecount:
-            ErrorExit("No valid patches found in output from git diff")
-        # Add auto property for the last seen file.
-        assert filename is not None
-        # AddSubversionPropertyChange(filename)
-        return "".join(svndiff)
+        return self.FormatDiff(gitdiff, source_path, files_to_skip)
 
     def GetUnknownFiles(self):
         status = RunShell(
@@ -1304,6 +1303,13 @@ class GitVCS(VersionControlSystem):
             silent_ok=False, ignore_stderr=True)
         return out.split()
 
+    def GetCommonAncestor(self, revision):
+        out = RunShell(
+            ['git', 'merge-base', self.base_rev, revision],
+            cwd=self.repo_dir,
+            silent_ok=False, ignore_stderr=True)
+        return out.strip()
+
 
 class MercurialVCS(VersionControlSystem):
 
@@ -1346,34 +1352,12 @@ class MercurialVCS(VersionControlSystem):
             raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, self.base_rev))
         return out
 
-    def GenerateDiff(self, source_revision, source_path=None):
+    def GenerateDiff(self, target_revision, source_revision, source_path=None, files_to_skip=[]):
         # If no file specified, restrict to the current subdir
-        extra_args = ((
-            [source_path]
-            if source_path else []) + ['-r', source_revision])
         cmd = [
-            "hg", '--config', "-R", self.repo_dir, "diff", "--git", "-r", self.base_rev] + extra_args
-        data = RunShell(cmd, silent_ok=True)
-        svndiff = []
-        filecount = 0
-        for line in data.splitlines():
-            m = re.match("diff --git a/(.*?) b/(.*?)$", line)
-            if m:
-                # Modify line to make it look like as it comes from svn diff.
-                # With this modification no changes on the server side are required
-                # to make upload.py work with Mercurial repos.
-                # NOTE: for proper handling of moved/copied files, we have to use
-                # the second filename.
-                filename = m.group(2)
-                svndiff.append("Index: %s" % filename)
-                svndiff.append("=" * 67)
-                filecount += 1
-                logging.debug(line)
-            else:
-                svndiff.append(line)
-        if not filecount:
-            ErrorExit("No valid patches found in output from hg diff")
-        return "\n".join(svndiff) + "\n"
+            "hg", "-R", self.repo_dir, "diff", "--git", "-r", target_revision or self.base_rev, "-r", source_revision]
+        gitdiff = RunShell(cmd, silent_ok=True)
+        return self.FormatDiff(gitdiff, source_path, files_to_skip)
 
     def GetUnknownFiles(self):
         """Return a list of files unknown to the VCS."""
@@ -1461,12 +1445,19 @@ class MercurialVCS(VersionControlSystem):
             silent_ok=False, ignore_stderr=True)
         return out.split()
 
+    def GetCommonAncestor(self, revision):
+        out = RunShell([
+            'hg', 'debugancestor', revision, self.base_rev],
+            cwd=self.repo_dir,
+            silent_ok=False, ignore_stderr=True)
+        return out.split(':')[1].strip()
+
 
 class BazaarVCS(VersionControlSystem):
 
     """Implementation of the VersionControlSystem interface for Bazaar."""
 
-    def GenerateDiff(self, args):
+    def GenerateDiff(self, target_revision, source_revision, source_path=None, files_to_skip=[]):
         """Return the current diff as a string.
 
         Args:
@@ -1475,21 +1466,11 @@ class BazaarVCS(VersionControlSystem):
 
         # We need check_returncode = False because bzr diff returns 1 if changes
         # are found.
-        data = RunShell(["bzr", "diff"] + args, silent_ok=True,
-                        check_returncode=False)
-        filecount = 0
-        lines = data.splitlines()
-        for i, line in enumerate(lines):
-            match = re.match(
-                r"^=== (added|removed|modified) file '(.*)'$", line)
-            if match:
-                # Modify line to make it look like as it comes from svn diff.
-                lines[i] = "Index: %s" % match.group(2)
-                filecount += 1
-                logging.debug(line)
-        if not filecount:
-            ErrorExit("No valid patches found in output from bzr diff")
-        return "\n".join(lines)
+        gitdiff = RunShell([
+            "bzr", "diff", "-F", "git",
+            "-c", target_revision or self.base_rev, "-c", source_revision], silent_ok=True,
+                        check_returncode=False, cwd=self.get_cwd())
+        return self.FormatDiff(gitdiff, source_path, files_to_skip)
 
     def GetUnknownFiles(self):
         """Return a list of files unknown to the VCS."""
