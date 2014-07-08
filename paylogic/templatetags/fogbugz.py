@@ -31,20 +31,21 @@ def create_codereview_if_neccessary_message(request, issue):
     case_id = get_case_id(issue)
     _, case_title, original_branch, feature_branch, ci_project = get_fogbugz_case_info(case_id)
 
-    source_vcs, source_url, source_revision, source_branch_is_local, _ = parse_branch_vcs_info(
-        feature_branch, settings.FEATURE_BRANCH_DEFAULT_PREFIX)
-    if os.path.isdir(source_url):
-        source = GuessVCS(
-            attrdict({'revision': source_revision, 'vcs': source_vcs}), source_url)
+    if feature_branch and original_branch:
+        source_vcs, source_url, source_revision, source_branch_is_local, _ = parse_branch_vcs_info(
+            feature_branch, settings.FEATURE_BRANCH_DEFAULT_PREFIX)
+        if os.path.isdir(source_url):
+            source = GuessVCS(
+                attrdict({'revision': source_revision, 'vcs': source_vcs}), source_url)
 
-        source_revision = source.CheckRevision().strip()
+            source_revision = source.CheckRevision().strip()
 
-        if issue.latest_patch_rev != source_revision:
-            messages_api.warning(
-                request, 'There are commits after the latest created patchset. '
-                'Please create a <a href="{0}?case={1}">new one</a>'.format(
-                    reverse('process_from_fogbugz'),
-                    case_id
+            if issue.latest_patch_rev != source_revision:
+                messages_api.warning(
+                    request, 'There are commits after the latest created patchset. '
+                    'Please create a <a href="{0}?case={1}">new one</a>'.format(
+                        reverse('process_from_fogbugz'),
+                        case_id
+                    )
                 )
-            )
     return ''

@@ -253,12 +253,19 @@ def get_fogbugz_case_info(case_number):
             settings.FOGBUGZ_FEATURE_BRANCH_FIELD_ID,
             settings.FOGBUGZ_CI_PROJECT_FIELD_ID]))
 
+    def get_field(field):
+        value = getattr(resp, field)
+        if value is not None:
+            return value.string
+        else:
+            return ''
+
     return (
         case_number,
-        resp.stitle.string,
-        getattr(resp, settings.FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID).string,
-        getattr(resp, settings.FOGBUGZ_FEATURE_BRANCH_FIELD_ID).string,
-        getattr(resp, settings.FOGBUGZ_CI_PROJECT_FIELD_ID).string
+        get_field('stitle'),
+        get_field(settings.FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID),
+        get_field(settings.FOGBUGZ_FEATURE_BRANCH_FIELD_ID),
+        get_field(settings.FOGBUGZ_CI_PROJECT_FIELD_ID)
     )
 
 
