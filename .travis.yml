@@ -3,6 +3,9 @@ python:
     - 2.6
 # command to install dependencies
 # # command to run tests
+before_install:
+  - sudo apt-get update
+  - make dependencies
 install: true
 script:
   - make test python_version=

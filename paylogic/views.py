@@ -19,7 +19,7 @@ from google.appengine.ext import db
 from codereview import models, views
 from codereview.engine import ParsePatchSet
 
-from paylogic.vcs import GuessVCS, GitVCS
+from paylogic.vcs import GuessVCS
 from paylogic.forms import GatekeeperApprove
 
 import logging
@@ -165,6 +165,7 @@ def get_complete_diff(target, target_revision, source, source_revision):
 
 def get_source_target_revisions(source, source_revision, target, target_revision, supports_simple_cloning):
     """Get source and target revisions.
+
     :param source: `VersionControlSystem` object of the source repo
     :param source_revision: `string` source repository revision, can be branch name, or hash, or bookmark
     :param target: `VersionControlSystem` object of the target repo
@@ -173,11 +174,12 @@ def get_source_target_revisions(source, source_revision, target, target_revision
         so we can use it to get target revision (hash) from target branch
     :return: `tuple` in form ('source_revision_hash', 'target_revision_hash')
     """
-    target_revision = target.CheckRevision().strip()
     source_revision = source.CheckRevision().strip()
 
     if supports_simple_cloning:
         target_revision = source.GetCommonAncestor(target_revision)
+    else:
+        target_revision = target.CheckRevision().strip()
 
     return source_revision, target_revision
 
@@ -314,7 +316,8 @@ def create_file_content(patch, exp_path, filename):
     :param exp_path: `str` base export folder path to use for file reading
     :param filename: `str` filename for file reading
 
-    :return: `Patch` object with the content read from given filename."""
+    :return: `Patch` object with the content read from given filename.
+    """
     file_path = os.path.join(exp_path, filename)
     args = {'text': ''}
 

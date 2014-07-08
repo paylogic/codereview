@@ -44,4 +44,4 @@ build: clean
 	cd build; python manage.py collectstatic --noinput --settings=paylogic.settings_build
 
 dependencies:
-	sudo apt-get install `cat DEPENDENCIES* | grep -v '#'`
+	sudo apt-get install `cat DEPENDENCIES* | grep -v '#'` -y

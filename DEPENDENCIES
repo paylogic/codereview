@@ -2,6 +2,7 @@
 mercurial
 git-core
 bzr
+bzr-git
 python
 python-virtualenv
 libxslt1-dev

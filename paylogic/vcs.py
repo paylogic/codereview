@@ -663,7 +663,6 @@ class VersionControlSystem(object):
         # Map of new filename -> old filename for renames.
         self.renames = {}
 
-
     def GenerateDiff(self, args):
         """Return the current diff as a string.
 
@@ -1304,10 +1303,16 @@ class GitVCS(VersionControlSystem):
         return out.split()
 
     def GetCommonAncestor(self, revision):
-        out = RunShell(
-            ['git', 'merge-base', self.base_rev, revision],
-            cwd=self.repo_dir,
-            silent_ok=False, ignore_stderr=True)
+        try:
+            out = RunShell(
+                ['git', 'merge-base', self.base_rev, revision],
+                cwd=self.repo_dir,
+                silent_ok=False, ignore_stderr=False)
+        except RuntimeError:
+            out = RunShell(
+                ['git', 'merge-base', self.base_rev, 'origin/' + revision],
+                cwd=self.repo_dir,
+                silent_ok=False, ignore_stderr=False)
         return out.strip()
 
 
@@ -1469,7 +1474,7 @@ class BazaarVCS(VersionControlSystem):
         gitdiff = RunShell([
             "bzr", "diff", "-F", "git",
             "-c", target_revision or self.base_rev, "-c", source_revision], silent_ok=True,
-                        check_returncode=False, cwd=self.get_cwd())
+            check_returncode=False, cwd=self.get_cwd())
         return self.FormatDiff(gitdiff, source_path, files_to_skip)
 
     def GetUnknownFiles(self):
