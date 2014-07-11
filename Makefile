@@ -34,7 +34,7 @@ coveralls:
 	coveralls
 
 clean:
-	-rm -rf ./build
+	-rm -rf ./build /tmp/pip_build_root
 
 build: clean
 	mkdir -p ./build
