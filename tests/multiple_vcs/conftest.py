@@ -12,3 +12,9 @@ def vcs(request):
 def branch_url_mode(request):
     """Branch url mode. In short one, default prefixes will be used."""
     return request.param
+
+
+@pytest.fixture(params=[True, False])
+def source_repo_is_related(request):
+    """Source repository is related to (cloned from) the target repository."""
+    return request.param

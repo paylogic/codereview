@@ -19,7 +19,7 @@ from google.appengine.ext import db
 from codereview import models, views
 from codereview.engine import ParsePatchSet
 
-from paylogic.vcs import GuessVCS
+from paylogic.vcs import GuessVCS, GitVCS
 from paylogic.forms import GatekeeperApprove
 
 import logging
@@ -122,13 +122,14 @@ def parse_branch_vcs_info(branch, default_prefix):
     raise ValueError('Invalid branch format: {0}'.format(branch))
 
 
-def get_complete_diff(target, target_revision, source, source_revision):
+def get_complete_diff(target, target_revision, source, source_revision, is_related):
     """Get the complete diff string given 2 repositories and revisions.
 
     :param target: `VersionControlSystem` object of the target repo
     :param target_revision: `str` revision of the target repo to compare
     :param source: `VersionControlSystem` object of the source repo
     :param source_revision: `str` revision of the target repo to compare
+    :param is_related: `bool` if repositories are related between each other (cloned)
 
     :return: `tuple` in form ('diff string', 'target export path', 'source export path')
     """
@@ -147,10 +148,19 @@ def get_complete_diff(target, target_revision, source, source_revision):
         log("Exported source")
         log("Generating diff with target_revision={target_revision}, source_revision={source_revision}".format(
             target_revision=target_revision, source_revision=source_revision))
-        complete_diff = source.GenerateDiff(target_revision, source_revision)
-        # complete_diff = GitVCS(attrdict({'revision': target_revision}),
-        #            target_export_path)
-        #     .GenerateDiff(source_path=source_export_path, files_to_skip=settings.CODEREVIEW_IGNORED_FILES))
+        if is_related:
+            complete_diff = source.GenerateDiff(
+                target_revision,
+                source_revision,
+                files_to_skip=settings.CODEREVIEW_IGNORED_FILES)
+        else:
+            complete_diff = (GitVCS(
+                attrdict({'revision': target_revision}),
+                target_export_path)
+                .GenerateDiff(
+                    target_revision,
+                    source_path=source_export_path,
+                    files_to_skip=settings.CODEREVIEW_IGNORED_FILES))
         log("Finished generating diff!")
         return complete_diff, target_export_path, source_export_path
     except Exception:
@@ -172,16 +182,24 @@ def get_source_target_revisions(source, source_revision, target, target_revision
     :param target_revision: `string` target repository revision, can be branch name, or hash, or bookmark
     :param supports_simple_cloning: `bool` True if source repo support simple cloning,
         so we can use it to get target revision (hash) from target branch
-    :return: `tuple` in form ('source_revision_hash', 'target_revision_hash')
+    :return: `tuple` in form ('source_revision_hash', 'target_revision_hash', 'is_related')
     """
+    is_related = True
     source_revision = source.CheckRevision().strip()
 
     if supports_simple_cloning:
-        target_revision = source.GetCommonAncestor(target_revision)
+        try:
+            target_revision = source.GetCommonAncestor(target_revision)
+        except RuntimeError:
+            target_revision = target.CheckRevision().strip()
+            is_related = False
+        else:
+            if target_revision == source_revision:
+                is_related = False
     else:
         target_revision = target.CheckRevision().strip()
 
-    return source_revision, target_revision
+    return source_revision, target_revision, is_related
 
 
 def generate_diff(original_branch, feature_branch):
@@ -221,11 +239,11 @@ def generate_diff(original_branch, feature_branch):
             source = source.Clone(source_path)
             source.Checkout()
 
-        source_revision, target_revision = get_source_target_revisions(
+        source_revision, target_revision, is_related = get_source_target_revisions(
             source, source_revision, target, target_revision, supports_simple_cloning)
 
         complete_diff, target_export_path, source_export_path = get_complete_diff(
-            target, target_revision, source, source_revision)
+            target, target_revision, source, source_revision, is_related)
         return (
             source_url, target_url, complete_diff, target, target_export_path,
             source_revision, source_export_path)

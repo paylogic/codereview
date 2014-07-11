@@ -1200,6 +1200,8 @@ class GitVCS(VersionControlSystem):
         env = os.environ.copy()
         if 'GIT_EXTERNAL_DIFF' in env:
             del env['GIT_EXTERNAL_DIFF']
+        if source_path is not None:
+            extra_args = ['--no-index', '.', source_path]
         gitdiff = RunShell(
             ['git', 'diff', '--no-ext-diff', '--full-index', '-M'] +
             extra_args,
