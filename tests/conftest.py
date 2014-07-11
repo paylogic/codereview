@@ -45,7 +45,6 @@ def app(user, user_name, user_password):
 @pytest.fixture(autouse=True)
 def django_settings(repo_base_dir, target_repo_name, source_repo_name, vcs):
     """Override django settings for tests purpose."""
-
     default_branches = {
         'hg': 'default',
         'git': 'master',
@@ -114,8 +113,8 @@ def vcs_commands(vcs):
             'config': [('bzr', 'whoami', '"testuser <test@u.ser>"')],
             'init-branch': ['bzr', 'init'],
             'add': ['bzr', 'add', '.'],
-            'branch': ['bzr', 'branch'],
-            'clone': ['bzr', 'clone'],
+            'branch': ['bzr', 'init'],
+            'clone': ['bzr', 'branch'],
             'commit': ['bzr', 'commit', '-m', '"test commit"']
         },
     }[vcs]
@@ -194,22 +193,34 @@ def target_test_file_source_content():
 
 
 @pytest.fixture
+def source_repo_is_related():
+    """Source repository is related to (cloned from) the target repository."""
+    return True
+
+
+@pytest.fixture
 def source_repo(
         vcs, vcs_commands, repo_base_dir, target_repo, source_repo_branch, source_test_file_content,
         target_test_file_name, target_test_file_source_content, source_test_file_name, target_repo_branch,
-        source_repo_name):
+        source_repo_name, source_repo_is_related):
     """Source repo. Means the feature branch of the codereview."""
     path = repo_base_dir.join(source_repo_name)
-    if vcs == 'bzr':
-        subprocess.check_call(vcs_commands['init'] + [path.strpath])
-        subprocess.check_call(vcs_commands['branch'] + [
-            target_repo.strpath, source_repo_branch], cwd=path.strpath)
-        path = path.join(source_repo_branch)
-    else:
+    os.makedirs(path.strpath)
+    if source_repo_is_related:
+        if vcs == 'bzr':
+            path = path.join(source_repo_branch)
         subprocess.check_call(
             vcs_commands['clone'] + [target_repo.strpath, path.strpath])
+        if vcs != 'bzr':
+            subprocess.check_call(
+                vcs_commands['branch'] + [source_repo_branch], cwd=path.strpath)
+    else:
+        subprocess.check_call(
+            vcs_commands['init'] + [path.strpath])
         subprocess.check_call(
             vcs_commands['branch'] + [source_repo_branch], cwd=path.strpath)
+        if vcs == 'bzr':
+            path = path.join(source_repo_branch)
     if 'config' in vcs_commands:
         for commands in vcs_commands['config']:
             subprocess.check_call(commands, cwd=path.strpath)

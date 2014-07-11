@@ -1,6 +1,10 @@
 Changelog
 =========
 
+11-7-2014
+    - Fallback to full directory comparison if repositories are not related
+      (bubenkoff)
+
 8-07-2014
     - Use common ancestor revision as target when getting diff
       (bubenkoff)
