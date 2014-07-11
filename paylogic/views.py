@@ -138,13 +138,13 @@ def get_complete_diff(target, target_revision, source, source_revision, is_relat
         target_export_path = os.path.join(
             settings.TEMP_FOLDER, uuid.uuid4().hex)
         log("Exporting target copy to {0}".format(target_export_path))
-        target.Export(target_export_path)
+        target.Export(target_revision, target_export_path)
         log("Exported target copy")
 
         source_export_path = os.path.join(
             settings.TEMP_FOLDER, uuid.uuid4().hex)
         log("Exporting source to {0}".format(source_export_path))
-        source.Export(source_export_path)
+        source.Export(source_revision, source_export_path)
         log("Exported source")
         log("Generating diff with target_revision={target_revision}, source_revision={source_revision}".format(
             target_revision=target_revision, source_revision=source_revision))

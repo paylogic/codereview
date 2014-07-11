@@ -797,7 +797,7 @@ class VersionControlSystem(object):
             return False
         return not mimetype.startswith("text/")
 
-    def Export(self, path):
+    def Export(self, revision, path):
         """Export repository to given directory."""
         path = os.path.normpath(path) + os.sep
         os.makedirs(path)
@@ -1290,11 +1290,11 @@ class GitVCS(VersionControlSystem):
                  cwd=self.repo_dir, silent_ok=True)
         RunShell(['git', 'fetch', 'source'], cwd=self.repo_dir)
 
-    def Export(self, path):
-        super(GitVCS, self).Export(path)
+    def Export(self, revision, path):
+        super(GitVCS, self).Export(revision, path)
         RunShell(
-            ['git', 'checkout-index', '--prefix',
-                os.path.normpath(path) + os.sep, '-a'],
+            ['sh', '-c', 'git archive --format=tar {revision} | (cd {path} && tar xf -)'.format(
+                path=os.path.normpath(path), revision=revision)],
             silent_ok=True, check_returncode=True, cwd=self.repo_dir)
 
     def GetBranches(self):
@@ -1433,10 +1433,10 @@ class MercurialVCS(VersionControlSystem):
             content = ''
         return content
 
-    def Export(self, path):
-        super(MercurialVCS, self).Export(path)
+    def Export(self, revision, path):
+        super(MercurialVCS, self).Export(revision, path)
         RunShell(['hg',
-                  'archive', '-r', self.base_rev, path],
+                  'archive', '-r', revision, path],
                  silent_ok=True, check_returncode=True, cwd=self.repo_dir)
 
     def Checkout(self):
@@ -1542,9 +1542,9 @@ class BazaarVCS(VersionControlSystem):
             raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, self.base_rev))
         return out.split('revision-id: ')[1].split()[0]
 
-    def Export(self, path):
-        super(BazaarVCS, self).Export(path)
-        RunShell(['bzr', 'export', os.path.normpath(path) + os.sep],
+    def Export(self, revision, path):
+        super(BazaarVCS, self).Export(revision, path)
+        RunShell(['bzr', 'export', '-r', revision, os.path.normpath(path) + os.sep],
                  silent_ok=True, check_returncode=True, cwd=self.get_cwd())
 
 
