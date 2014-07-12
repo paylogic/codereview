@@ -8,7 +8,6 @@ bugfixes as well.
 
 If you want to use it, please read the `Development Environment` section.
 
-
 .. image:: https://api.travis-ci.org/paylogic/codereview.png
    :target: https://travis-ci.org/paylogic/codereview
 .. image:: https://coveralls.io/repos/paylogic/codereview/badge.png?branch=master
