@@ -1,6 +1,10 @@
 Changelog
 =========
 
+12-7-2014
+    - Added wheel support (generation and installation)
+      (bubenkoff)
+
 11-7-2014
     - Fallback to full directory comparison if repositories are not related
       (bubenkoff)

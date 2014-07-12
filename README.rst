@@ -39,6 +39,10 @@ To set up the development environment, run:
 
 ::
 
+    # install system dependencies, requires sudo access!
+    make dependencies
+
+    # install python dependencies, initialize configs
     make develop
 
 
@@ -64,7 +68,7 @@ Production Deployment
 
 ::
 
-    make build pip_args="--index-url <pypi index containing custom package versions>"
+    make build index_url=<pypi index containing custom package versions>
 
 This command will make ./build folder containing all needed to run the application.
 
@@ -96,6 +100,34 @@ installation.
 
 When running in a production environment, keep in Django's CSRF
 protection is disabled in this example!
+
+
+Using wheels
+------------
+
+To speedup the build process, 2 make targets are implemented:
+
+`make wheel`
+    Build `wheels <https://pypi.python.org/pypi/wheel>`_ for all python dependencies, storing them in the
+    cache directory
+
+`make upload-wheel` (depends on `make wheel`)
+    Upload previously generated wheels to given private `devpi server <https://pypi.python.org/pypi/devpi-server>`_.
+
+    Parameters:
+* `devpi_url` - devpi server URL to use
+* `devpi_path` - index path to upload to
+* `devpi_login` - login to use for devpi authorization
+* `devpi_password` - password to use for devpi authorization
+
+After you'll upload wheels, `make build` and `make develop` time will be dramatically reduced, if you will
+pass `index_url` parameter pointing to the same devpi server index you used for `make upload-wheel`, for example:
+
+::
+
+    make build index_url=https://my.pypi.com/index/trusty/+simple/
+
+Be aware that binary wheels can only be used on exactly same architecture and environment as they were built.
 
 
 Creating the local environment

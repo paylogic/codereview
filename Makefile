@@ -1,8 +1,12 @@
+WHEEL_DIR=$(HOME)/.pip/wheels
+DOWNLOAD_CACHE_DIR=$(HOME)/.pip/downloads
 SHELL := /bin/bash
 PATH := $(PWD)/env/bin:$(PATH)
 python_version := 2.6
 cov_report := html
-pip_args :=
+index_url := https://pypi.python.org/simple/
+wheel_args := --use-wheel
+pip_args := $(wheel_args) --index-url=$(index_url) --allow-all-external --download-cache "$(DOWNLOAD_CACHE_DIR)"
 
 .PHONY: test clean
 
@@ -10,7 +14,7 @@ env:
 ifndef local_env
 	PATH=/usr/bin/:/usr/local/bin virtualenv env --no-site-packages -p python$(python_version)
 	env/bin/pip install -U setuptools $(pip_args)
-	env/bin/pip install -U pip $(pip_args)
+	env/bin/pip install -U pip wheel devpi-client $(pip_args)
 endif
 
 develop: env
@@ -34,7 +38,7 @@ coveralls:
 	coveralls
 
 clean:
-	-rm -rf ./build /tmp/pip_build_root
+	-rm -rf ./env ./build /tmp/pip_build_root
 
 build: clean
 	mkdir -p ./build
@@ -45,3 +49,19 @@ build: clean
 
 dependencies:
 	sudo apt-get install `cat DEPENDENCIES* | grep -v '#'` -y
+
+wheel: clean env
+	$(eval pip_args := --no-use-wheel --index-url=$(index_url) --allow-all-external)
+	rm -rf $(DOWNLOAD_CACHE_DIR)
+	rm -rf $(WHEEL_DIR)
+	mkdir -p $(DOWNLOAD_CACHE_DIR)
+	pip wheel -w "$(WHEEL_DIR)" -r requirements-testing.txt $(pip_args)
+	for x in `ls "$(DOWNLOAD_CACHE_DIR)/"| grep \.whl` ; do \
+		-mv "$$x" "$(WHEEL_DIR)/$${x$(pound)$(pound)*%2F}"; done
+	-rm -rf $(WHEEL_DIR)/Django-* # django of early versions doesn't work out of the box with wheels
+
+upload-wheel: wheel
+	devpi use $(devpi_url)
+	devpi use $(devpi_path)
+	devpi login $(devpi_login) --password=$(devpi_password)
+	devpi upload --no-vcs --formats=bdist_wheel $(WHEEL_DIR)/*
