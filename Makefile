@@ -13,8 +13,8 @@ pip_args := $(wheel_args) --index-url=$(index_url) --allow-all-external --downlo
 env:
 ifndef local_env
 	PATH=/usr/bin/:/usr/local/bin virtualenv env --no-site-packages -p python$(python_version)
-	env/bin/pip install -U setuptools $(pip_args)
-	env/bin/pip install -U pip wheel devpi-client $(pip_args)
+	env/bin/pip install -U setuptools --index-url=$(index_url)
+	env/bin/pip install -U pip wheel devpi-client --index-url=$(index_url)
 endif
 
 develop: env
