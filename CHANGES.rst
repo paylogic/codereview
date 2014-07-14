@@ -5,6 +5,10 @@ Changelog
     - Give an option to assign the FB case of an issue when submitting comments.
       (esjee)
 
+12-7-2014
+    - Added wheel support (generation and installation)
+      (bubenkoff)
+
 11-7-2014
     - Fallback to full directory comparison if repositories are not related
       (bubenkoff)

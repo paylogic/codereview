@@ -138,13 +138,13 @@ def get_complete_diff(target, target_revision, source, source_revision, is_relat
         target_export_path = os.path.join(
             settings.TEMP_FOLDER, uuid.uuid4().hex)
         log("Exporting target copy to {0}".format(target_export_path))
-        target.Export(target_export_path)
+        target.Export(target_revision, target_export_path)
         log("Exported target copy")
 
         source_export_path = os.path.join(
             settings.TEMP_FOLDER, uuid.uuid4().hex)
         log("Exporting source to {0}".format(source_export_path))
-        source.Export(source_export_path)
+        source.Export(source_revision, source_export_path)
         log("Exported source")
         log("Generating diff with target_revision={target_revision}, source_revision={source_revision}".format(
             target_revision=target_revision, source_revision=source_revision))
@@ -190,12 +190,11 @@ def get_source_target_revisions(source, source_revision, target, target_revision
     if supports_simple_cloning:
         try:
             target_revision = source.GetCommonAncestor(target_revision)
+            if target_revision == source_revision:
+                raise RuntimeError('target and source revisions are same')
         except RuntimeError:
             target_revision = target.CheckRevision().strip()
             is_related = False
-        else:
-            if target_revision == source_revision:
-                is_related = False
     else:
         target_revision = target.CheckRevision().strip()
 
