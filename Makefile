@@ -40,7 +40,7 @@ coveralls:
 clean:
 	-rm -rf ./env ./build /tmp/pip_build_root
 
-build: clean
+build: clean env
 	mkdir -p ./build
 	echo "`git rev-parse --abbrev-ref HEAD`: `git rev-parse HEAD`" > ./build/VERSION
 	pip install -r requirements.txt --target=./build $(pip_args)
