@@ -1,10 +1,6 @@
 """Codereview views tests."""
 import pytest
 
-from codereview.views import publish
-from django.test.client import RequestFactory
-
-
 @pytest.mark.parametrize('user_permissions', ([],))
 def test_index(app, issue):
     """Test that index is open for everyone."""
