@@ -190,12 +190,11 @@ def get_source_target_revisions(source, source_revision, target, target_revision
     if supports_simple_cloning:
         try:
             target_revision = source.GetCommonAncestor(target_revision)
+            if target_revision == source_revision:
+                raise RuntimeError('target and source revisions are same')
         except RuntimeError:
             target_revision = target.CheckRevision().strip()
             is_related = False
-        else:
-            if target_revision == source_revision:
-                is_related = False
     else:
         target_revision = target.CheckRevision().strip()
 
