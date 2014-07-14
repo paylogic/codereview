@@ -287,6 +287,43 @@ def get_fogbugz_case_info(case_number):
     )
 
 
+def get_fogbugz_assignees(case_number):
+    """Get a list of people that a given case has been assigned to."""
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=settings.FOGBUGZ_TOKEN)
+    resp = fogbugz_instance.search(q=case_number, cols='events')
+    possible_assignees = []
+    fetched_person_ids = set()
+    events = resp.findAll('event')
+    events.reverse()
+    for event in events:
+        try:
+            person_id = int(event.find('ixpersonassignedto').text)
+            if person_id == 0:  # Special id signifying invalid user.
+                raise ValueError
+        except ValueError:
+            continue
+
+        if person_id in fetched_person_ids:
+            # Already added this person.
+            continue
+
+        person_name = fogbugz_instance.viewPerson(ixPerson=person_id).find('sfullname').text
+        fetched_person_ids.add(person_id)
+        possible_assignees.append((person_id, person_name))
+
+    if len(possible_assignees) >= 2:
+        return (
+            # Person who assigned review
+            [possible_assignees[1]]
+            # Reviewer
+            + [possible_assignees[0]]
+            # Everybody else
+            + possible_assignees[2:]
+        )
+    else:
+        return possible_assignees
+
+
 def get_issue(request, case_number, case_title):
     """Get/create codereview issue based on fogbugz case information.
 

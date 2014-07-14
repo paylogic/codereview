@@ -28,6 +28,7 @@ import urllib
 from cStringIO import StringIO
 from lxml import etree as ElementTree
 import mimetypes
+import fogbugz
 
 from google.appengine.api import mail
 from google.appengine.api import memcache
@@ -54,6 +55,7 @@ from django.utils import simplejson
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 from django.contrib.staticfiles.views import serve  # NOQA
+from django_select2.fields import HeavySelect2TagField
 
 import engine
 import library
@@ -322,6 +324,9 @@ class PublishForm(forms.Form):
     no_redirect = forms.BooleanField(required=False,
                                      widget=forms.HiddenInput())
 
+    def __init__(self, case_id, *args, **kwargs):
+        super(PublishForm, self).__init__(*args, **kwargs)
+
 
 class MiniPublishForm(forms.Form):
 
@@ -340,6 +345,32 @@ class MiniPublishForm(forms.Form):
                                       widget=forms.HiddenInput())
     no_redirect = forms.BooleanField(required=False,
                                      widget=forms.HiddenInput())
+    assign_to = HeavySelect2TagField(
+        'assign_to',
+        data_view='lookup_case_assigned',
+    )
+
+    def __init__(self, case_id, *args, **kwargs):
+        """Set the lookup url according to a given Fogbugz case_id.
+
+        :param case_id: `int` Fogbugz case id.
+        """
+        super(MiniPublishForm, self).__init__(*args, **kwargs)
+        widget = self.fields['assign_to'].widget
+        widget.options['minimumInputLength'] = 0
+        widget.options['maximumSelectionSize'] = 1
+        widget.options['width'] = '200px'
+
+        widget.url = widget.options['ajax']['url'] = reverse(
+            self.fields['assign_to'].widget.view, kwargs=dict(case_id=case_id))
+        self.fields['assign_to'].required = False
+
+    def clean_assign_to(self):
+        value = self.cleaned_data.get('assign_to')
+        if value:
+            return value[0]
+        else:
+            return None
 
 
 FORM_CONTEXT_VALUES = [(x, '%d lines' % x) for x in models.CONTEXT_CHOICES]
@@ -481,6 +512,11 @@ class InvalidIncomingEmailError(Exception):
 
 
 # Helper functions ###
+
+
+def fogbugz_assign_case(case_number, target):
+    fogbugz_instance = fogbugz.FogBugz(django_settings.FOGBUGZ_URL, token=django_settings.FOGBUGZ_TOKEN)
+    fogbugz_instance.assign(ixBug=case_number, ixPersonAssignedTo=target)
 
 
 # Counter displayed (by respond()) below) on every page showing how
@@ -2990,7 +3026,9 @@ def _get_mail_template(request, issue, full_diff=False):
 @xsrf_required
 def publish(request):
     """ /<issue>/publish - Publish draft comments and send mail."""
+    from paylogic.views import get_case_id
     issue = request.issue
+    case_id = get_case_id(request.issue)
     if request.user == issue.owner:
         form_class = PublishForm
     else:
@@ -3020,7 +3058,7 @@ def publish(request):
             msg = ''
         else:
             msg = draft_message.text
-        form = form_class(initial={'subject': issue.subject,
+        form = form_class(case_id, initial={'subject': issue.subject,
                                    'reviewers': ', '.join(reviewers),
                                    'cc': ', '.join(ccs),
                                    'send_mail': True,
@@ -3032,7 +3070,7 @@ def publish(request):
                                                  'draft_message': draft_message,
                                                  })
 
-    form = form_class(request.POST)
+    form = form_class(case_id, request.POST)
     if not form.is_valid():
         return respond(request, 'publish.html', {'form': form, 'issue': issue})
     if request.user == issue.owner:
@@ -3077,6 +3115,10 @@ def publish(request):
     measurements.measure_comments_per_user(request, issue)
 
     _notify_issue(request, issue, 'Comments published')
+
+    assign_to = form.cleaned_data.get('assign_to', None)
+    if assign_to:
+        fogbugz_assign_case(case_id, assign_to)
 
     # There are now no comments here (modulo race conditions)
     models.Account.current_user_account.update_drafts(issue, 0)

@@ -1,6 +1,10 @@
 Changelog
 =========
 
+14-7-2014
+    - Give an option to assign the FB case of an issue when submitting comments.
+      (esjee)
+
 11-7-2014
     - Fallback to full directory comparison if repositories are not related
       (bubenkoff)

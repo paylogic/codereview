@@ -31,6 +31,8 @@ urlpatterns = patterns(
         lookups.TargetBranchesView.as_view(), name='lookup_target_branches'),
     url(r'^gatekeeper_mark_ok/(?P<issue_id>\d+)/$',
         'paylogic.views.gatekeeper_mark_ok', name="paylogic_mark_ok"),
+    url(r'^lookup/case_assigned/(?P<case_id>\d+)$',
+        lookups.CaseAssignedView.as_view(), name='lookup_case_assigned'),
     ('', include('codereview.urls')),
 )
 

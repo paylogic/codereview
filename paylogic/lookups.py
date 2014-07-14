@@ -34,3 +34,12 @@ class TargetBranchesView(Select2View):
         else:
             choices = []
         return (NO_ERR_RESP, False, choices)  # Any error response, Has more results, options list
+
+
+class CaseAssignedView(Select2View):
+    """Fetch people that a given case was assigned to."""
+
+    def get_results(self, request, term, page, context):
+        case_id = self.kwargs['case_id']
+        possible_assignees = views.get_fogbugz_assignees(case_id)
+        return (NO_ERR_RESP, False, possible_assignees)  # Any error response, Has more results, options list
