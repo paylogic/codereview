@@ -28,7 +28,6 @@ import urllib
 from cStringIO import StringIO
 from lxml import etree as ElementTree
 import mimetypes
-import fogbugz
 
 from google.appengine.api import mail
 from google.appengine.api import memcache
@@ -55,13 +54,11 @@ from django.utils import simplejson
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 from django.contrib.staticfiles.views import serve  # NOQA
-from django_select2.fields import HeavySelect2TagField
 
 import engine
 import library
 import models
 import patching
-from paylogic import measurements
 BINARY_FILES_PATH = os.path.join(django_settings.MEDIA_ROOT, 'binary_files')
 
 
@@ -304,75 +301,6 @@ class BranchForm(djangoforms.ModelForm):
         exclude = ['owner', 'repo_name']
 
 
-class PublishForm(forms.Form):
-
-    subject = forms.CharField(max_length=MAX_SUBJECT,
-                              widget=forms.TextInput(attrs={'size': 60}))
-    reviewers = forms.CharField(required=False,
-                                max_length=MAX_REVIEWERS,
-                                widget=AccountInput(attrs={'size': 60}))
-    cc = forms.CharField(required=False,
-                         max_length=MAX_CC,
-                         label='CC',
-                         widget=AccountInput(attrs={'size': 60}))
-    send_mail = forms.BooleanField(required=False)
-    message = forms.CharField(required=False,
-                              max_length=MAX_MESSAGE,
-                              widget=forms.Textarea(attrs={'cols': 60}))
-    message_only = forms.BooleanField(required=False,
-                                      widget=forms.HiddenInput())
-    no_redirect = forms.BooleanField(required=False,
-                                     widget=forms.HiddenInput())
-
-    def __init__(self, case_id, *args, **kwargs):
-        super(PublishForm, self).__init__(*args, **kwargs)
-
-
-class MiniPublishForm(forms.Form):
-
-    reviewers = forms.CharField(required=False,
-                                max_length=MAX_REVIEWERS,
-                                widget=AccountInput(attrs={'size': 60}))
-    cc = forms.CharField(required=False,
-                         max_length=MAX_CC,
-                         label='CC',
-                         widget=AccountInput(attrs={'size': 60}))
-    send_mail = forms.BooleanField(required=False)
-    message = forms.CharField(required=False,
-                              max_length=MAX_MESSAGE,
-                              widget=forms.Textarea(attrs={'cols': 60}))
-    message_only = forms.BooleanField(required=False,
-                                      widget=forms.HiddenInput())
-    no_redirect = forms.BooleanField(required=False,
-                                     widget=forms.HiddenInput())
-    assign_to = HeavySelect2TagField(
-        'assign_to',
-        data_view='lookup_case_assigned',
-    )
-
-    def __init__(self, case_id, *args, **kwargs):
-        """Set the lookup url according to a given Fogbugz case_id.
-
-        :param case_id: `int` Fogbugz case id.
-        """
-        super(MiniPublishForm, self).__init__(*args, **kwargs)
-        widget = self.fields['assign_to'].widget
-        widget.options['minimumInputLength'] = 0
-        widget.options['maximumSelectionSize'] = 1
-        widget.options['width'] = '200px'
-
-        widget.url = widget.options['ajax']['url'] = reverse(
-            self.fields['assign_to'].widget.view, kwargs=dict(case_id=case_id))
-        self.fields['assign_to'].required = False
-
-    def clean_assign_to(self):
-        value = self.cleaned_data.get('assign_to')
-        if value:
-            return value[0]
-        else:
-            return None
-
-
 FORM_CONTEXT_VALUES = [(x, '%d lines' % x) for x in models.CONTEXT_CHOICES]
 FORM_CONTEXT_VALUES.append(('', 'Whole file'))
 
@@ -512,12 +440,6 @@ class InvalidIncomingEmailError(Exception):
 
 
 # Helper functions ###
-
-
-def fogbugz_assign_case(case_number, target):
-    fogbugz_instance = fogbugz.FogBugz(django_settings.FOGBUGZ_URL, token=django_settings.FOGBUGZ_TOKEN)
-    fogbugz_instance.assign(ixBug=case_number, ixPersonAssignedTo=target)
-
 
 # Counter displayed (by respond()) below) on every page showing how
 # many requests the current incarnation has handled, not counting
@@ -3019,112 +2941,6 @@ def _get_mail_template(request, issue, full_diff=False):
             context.update(
                 {'files': files, 'patch': patch, 'base': issue.base})
     return template, context
-
-
-@permission_required('codereview.add_comment')
-@issue_required
-@xsrf_required
-def publish(request):
-    """ /<issue>/publish - Publish draft comments and send mail."""
-    from paylogic.views import get_case_id
-    issue = request.issue
-    case_id = get_case_id(request.issue)
-    if request.user == issue.owner:
-        form_class = PublishForm
-    else:
-        form_class = MiniPublishForm
-    draft_message = None
-    if not request.POST.get('message_only', None):
-        query = models.Message.gql(('WHERE issue = :1 AND sender = :2 '
-                                    'AND draft = TRUE'), issue,
-                                   request.user.email())
-        draft_message = query.get()
-    if request.method != 'POST':
-        reviewers = issue.reviewers[:]
-        cc = issue.cc[:] + [django_settings.DEFAULT_MAIL_CC]
-        if request.user != issue.owner and (request.user.email()
-                                            not in issue.reviewers):
-            reviewers.append(request.user.email())
-            if request.user.email() in cc:
-                cc.remove(request.user.email())
-        reviewers = [models.Account.get_nickname_for_email(reviewer,
-                                                           default=reviewer)
-                     for reviewer in reviewers]
-        ccs = [models.Account.get_nickname_for_email(cc, default=cc)
-               for cc in cc]
-        tbd, comments = _get_draft_comments(request, issue, True)
-        preview = _get_draft_details(request, comments)
-        if draft_message is None:
-            msg = ''
-        else:
-            msg = draft_message.text
-        form = form_class(case_id, initial={'subject': issue.subject,
-                                   'reviewers': ', '.join(reviewers),
-                                   'cc': ', '.join(ccs),
-                                   'send_mail': True,
-                                   'message': msg,
-                                   })
-        return respond(request, 'publish.html', {'form': form,
-                                                 'issue': issue,
-                                                 'preview': preview,
-                                                 'draft_message': draft_message,
-                                                 })
-
-    form = form_class(case_id, request.POST)
-    if not form.is_valid():
-        return respond(request, 'publish.html', {'form': form, 'issue': issue})
-    if request.user == issue.owner:
-        issue.subject = form.cleaned_data['subject']
-    if form.is_valid() and not form.cleaned_data.get('message_only', False):
-        reviewers = _get_emails(form, 'reviewers')
-    else:
-        reviewers = issue.reviewers
-        if request.user != issue.owner and request.user.email() not in reviewers:
-            reviewers.append(db.Email(request.user.email()))
-    if form.is_valid() and not form.cleaned_data.get('message_only', False):
-        cc = _get_emails(form, 'cc')
-    else:
-        cc = issue.cc
-        # The user is in the reviewer list, remove them from CC if they're
-        # there.
-        if request.user.email() in cc:
-            cc.remove(request.user.email())
-    if not form.is_valid():
-        return respond(request, 'publish.html', {'form': form, 'issue': issue})
-    issue.reviewers = reviewers
-    issue.cc = cc
-    if not form.cleaned_data.get('message_only', False):
-        tbd, comments = _get_draft_comments(request, issue)
-    else:
-        tbd = []
-        comments = []
-    issue.update_comment_count(len(comments))
-    tbd.append(issue)
-
-    if comments:
-        logging.warn('Publishing %d comments', len(comments))
-    msg = _make_message(request, issue,
-                        form.cleaned_data['message'],
-                        comments,
-                        form.cleaned_data['send_mail'],
-                        draft=draft_message)
-    tbd.append(msg)
-
-    for obj in tbd:
-        db.put(obj)
-    measurements.measure_comments_per_user(request, issue)
-
-    _notify_issue(request, issue, 'Comments published')
-
-    assign_to = form.cleaned_data.get('assign_to', None)
-    if assign_to:
-        fogbugz_assign_case(case_id, assign_to)
-
-    # There are now no comments here (modulo race conditions)
-    models.Account.current_user_account.update_drafts(issue, 0)
-    if form.cleaned_data.get('no_redirect', False):
-        return HttpResponse('OK', content_type='text/plain')
-    return HttpResponseRedirect(reverse(show, args=[issue.key().id()]))
 
 
 def _encode_safely(s):

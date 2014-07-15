@@ -11,6 +11,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import permission_required
 from django.contrib.messages import api as messages_api
 from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse
 from django.http import HttpResponseServerError, HttpResponseRedirect, HttpResponse
 
 from google.appengine.api import users
@@ -19,8 +20,9 @@ from google.appengine.ext import db
 from codereview import models, views
 from codereview.engine import ParsePatchSet
 
+from paylogic import measurements
 from paylogic.vcs import GuessVCS, GitVCS
-from paylogic.forms import GatekeeperApprove
+from paylogic.forms import GatekeeperApprove, PublishForm, MiniPublishForm
 
 import logging
 import logging.handlers
@@ -323,6 +325,11 @@ def get_fogbugz_assignees(case_number):
         return possible_assignees
 
 
+def fogbugz_assign_case(case_number, target):
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=settings.FOGBUGZ_TOKEN)
+    fogbugz_instance.assign(ixBug=case_number, ixPersonAssignedTo=target)
+
+
 def get_issue(request, case_number, case_title):
     """Get/create codereview issue based on fogbugz case information.
 
@@ -617,3 +624,113 @@ def mergekeeper_close(request, case_id):
     issue.closed = True
     issue.put()
     return HttpResponse('Closed', content_type='text/plain')
+
+
+@permission_required('codereview.add_comment')
+@views.issue_required
+@views.xsrf_required
+def publish(request):
+    """ /<issue>/publish - Publish draft comments and send mail."""
+    from paylogic.views import get_case_id
+    issue = request.issue
+    case_id = get_case_id(request.issue)
+    if request.user == issue.owner:
+        form_class = PublishForm
+    else:
+        form_class = MiniPublishForm
+    draft_message = None
+    if not request.POST.get('message_only', None):
+        query = models.Message.gql(('WHERE issue = :1 AND sender = :2 '
+                                    'AND draft = TRUE'), issue,
+                                   request.user.email())
+        draft_message = query.get()
+    if request.method != 'POST':
+        reviewers = issue.reviewers[:]
+        cc = issue.cc[:] + [settings.DEFAULT_MAIL_CC]
+        if request.user != issue.owner and (request.user.email()
+                                            not in issue.reviewers):
+            reviewers.append(request.user.email())
+            if request.user.email() in cc:
+                cc.remove(request.user.email())
+        reviewers = [models.Account.get_nickname_for_email(reviewer,
+                                                           default=reviewer)
+                     for reviewer in reviewers]
+        ccs = [models.Account.get_nickname_for_email(cc, default=cc)
+               for cc in cc]
+        tbd, comments = views._get_draft_comments(request, issue, True)
+        preview = views._get_draft_details(request, comments)
+        if draft_message is None:
+            msg = ''
+        else:
+            msg = draft_message.text
+
+        form = form_class(case_id, initial={
+            'subject': issue.subject[:views.MAX_SUBJECT],
+            'reviewers': ', '.join(reviewers),
+            'cc': ', '.join(ccs),
+            'send_mail': True,
+            'message': msg,
+        })
+        return views.respond(request, 'publish.html', {'form': form,
+                                                 'issue': issue,
+                                                 'preview': preview,
+                                                 'draft_message': draft_message,
+                                                 })
+
+    form = form_class(case_id, request.POST)
+    if not form.is_valid():
+        return views.respond(request, 'publish.html', {'form': form, 'issue': issue})
+    if request.user == issue.owner:
+        issue.subject = form.cleaned_data['subject']
+    if form.is_valid() and not form.cleaned_data.get('message_only', False):
+        reviewers = views._get_emails(form, 'reviewers')
+    else:
+        reviewers = issue.reviewers
+        if request.user != issue.owner and request.user.email() not in reviewers:
+            reviewers.append(db.Email(request.user.email()))
+    if form.is_valid() and not form.cleaned_data.get('message_only', False):
+        cc = views._get_emails(form, 'cc')
+    else:
+        cc = issue.cc
+        # The user is in the reviewer list, remove them from CC if they're
+        # there.
+        if request.user.email() in cc:
+            cc.remove(request.user.email())
+    if not form.is_valid():
+        return views.respond(request, 'publish.html', {'form': form, 'issue': issue})
+    issue.reviewers = reviewers
+    issue.cc = cc
+    if not form.cleaned_data.get('message_only', False):
+        tbd, comments = views._get_draft_comments(request, issue)
+    else:
+        tbd = []
+        comments = []
+    issue.update_comment_count(len(comments))
+    tbd.append(issue)
+
+    if comments:
+        logging.warn('Publishing %d comments', len(comments))
+    msg = views._make_message(
+        request, issue,
+        form.cleaned_data['message'],
+        comments,
+        form.cleaned_data['send_mail'],
+        draft=draft_message
+    )
+    tbd.append(msg)
+
+    for obj in tbd:
+        db.put(obj)
+    measurements.measure_comments_per_user(request, issue)
+
+    views._notify_issue(request, issue, 'Comments published')
+
+    assign_to = form.cleaned_data.get('assign_to', None)
+    if assign_to:
+        fogbugz_assign_case(case_id, assign_to)
+
+    # There are now no comments here (modulo race conditions)
+    models.Account.current_user_account.update_drafts(issue, 0)
+    if form.cleaned_data.get('no_redirect', False):
+        return HttpResponse('OK', content_type='text/plain')
+    return HttpResponseRedirect(reverse(views.show, args=[issue.key().id()]))

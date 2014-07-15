@@ -21,6 +21,7 @@ urlpatterns = patterns(
     ('^admin/', include(admin.site.urls)),
     (r'^openid/', include('django_openid_auth.urls')),
     ('^_ah/admin', 'rietveld_helper.views.admin_redirect'),
+    url(r'^(\d+)/publish$', 'paylogic.views.publish'),
     url(r'^fogbugz$', 'paylogic.views.process_codereview_from_fogbugz',
         name='process_from_fogbugz'),
     url(r'^fogbugz_find$', 'paylogic.views.find_codereview_from_fogbugz',
