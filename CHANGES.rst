@@ -4,6 +4,9 @@ Changelog
 14-7-2014
     - Give an option to assign the FB case of an issue when submitting comments.
       (esjee)
+    - Fixed an issue where the initial value for the subject when publishing comments could be greater than the
+        maximum allowed value.
+      (esjee)
 
 12-7-2014
     - Added wheel support (generation and installation)
