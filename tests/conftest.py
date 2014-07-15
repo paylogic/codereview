@@ -289,6 +289,43 @@ def user(db, user_name, user_email, user_password, user_permissions):
 
 
 @pytest.fixture
+def user2_name():
+    """User2 name."""
+    return 'dumb_user2'
+
+
+@pytest.fixture
+def user2_password():
+    """User2 password."""
+    return 'password'
+
+
+@pytest.fixture
+def user2_email():
+    """User2 email."""
+    return 'dumb@example.com'
+
+
+@pytest.fixture
+def user2_permissions():
+    """User2 permissions."""
+    return [
+        'view_issue', 'change_issue', 'add_issue',
+        'add_comment', 'change_comment', 'delete_comment',
+        'approve_patchset']
+
+
+@pytest.fixture
+def user2(db, user2_name, user2_email, user2_password, user2_permissions):
+    """User2."""
+    user2 = auth_models.User.objects.create_user(user2_name, user2_email, user2_password)
+    for permission in user2_permissions:
+        user2.user_permissions.add(auth_models.Permission.objects.get(codename=permission))
+    user2.save()
+    return user2
+
+
+@pytest.fixture
 def case_id():
     """Test fogbugz case id."""
     return 3000
@@ -337,6 +374,14 @@ def patchset_revision():
 def issue(user, issue_subject, patchset_revision):
     """Test issue."""
     issue = models.Issue(owner=user, subject=issue_subject, latest_patch_rev=patchset_revision)
+    issue.put()
+    return issue
+
+
+@pytest.fixture
+def issue2(user2, issue_subject, patchset_revision):
+    """Test issue, owned by user2."""
+    issue = models.Issue(owner=user2, subject=issue_subject, latest_patch_rev=patchset_revision)
     issue.put()
     return issue
 
