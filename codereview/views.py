@@ -441,6 +441,7 @@ class InvalidIncomingEmailError(Exception):
 
 # Helper functions ###
 
+
 # Counter displayed (by respond()) below) on every page showing how
 # many requests the current incarnation has handled, not counting
 # redirects.  Rendered by templates/base.html.
