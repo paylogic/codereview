@@ -631,7 +631,6 @@ def mergekeeper_close(request, case_id):
 @views.xsrf_required
 def publish(request):
     """ /<issue>/publish - Publish draft comments and send mail."""
-    from paylogic.views import get_case_id
     issue = request.issue
     case_id = get_case_id(request.issue)
     if request.user == issue.owner:
