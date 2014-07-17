@@ -27,7 +27,7 @@ endif
 
 test: env
 	pip install tox
-	tox --recreate
+	tox --recreate -vv
 
 coverage: develop
 	py.test --cov=paylogic --cov=codereview --cov-report=$(cov_report) tests
