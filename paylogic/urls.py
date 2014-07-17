@@ -21,6 +21,7 @@ urlpatterns = patterns(
     ('^admin/', include(admin.site.urls)),
     (r'^openid/', include('django_openid_auth.urls')),
     ('^_ah/admin', 'rietveld_helper.views.admin_redirect'),
+    url(r'^(\d+)/publish$', 'paylogic.views.publish'),
     url(r'^fogbugz$', 'paylogic.views.process_codereview_from_fogbugz',
         name='process_from_fogbugz'),
     url(r'^fogbugz_find$', 'paylogic.views.find_codereview_from_fogbugz',
@@ -31,6 +32,8 @@ urlpatterns = patterns(
         lookups.TargetBranchesView.as_view(), name='lookup_target_branches'),
     url(r'^gatekeeper_mark_ok/(?P<issue_id>\d+)/$',
         'paylogic.views.gatekeeper_mark_ok', name="paylogic_mark_ok"),
+    url(r'^lookup/case_assigned/(?P<case_id>\d+)$',
+        lookups.CaseAssignedView.as_view(), name='lookup_case_assigned'),
     ('', include('codereview.urls')),
 )
 

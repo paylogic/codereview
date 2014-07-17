@@ -100,7 +100,7 @@ login_warned = false;
     {%if user%}
     Double-click a line to add a draft in-line comment.
     <br><span style="color:red">Draft comments are only viewable by you;</span>
-    use <a href="{%url codereview.views.publish issue.key.id%}" class="novisit">Publish+Mail Comments</a> ('m') to let others view them.
+    use <a href="{%url paylogic.views.publish issue.key.id%}" class="novisit">Publish+Mail Comments</a> ('m') to let others view them.
     {%else%}
     Please Sign in to add in-line comments.
     {%endif%}
@@ -135,7 +135,7 @@ login_warned = false;
     {%if user%}
   </div>
   <div style="margin-top: 5px;">
-    <a class="novisit" href="{%url codereview.views.publish issue.key.id%}">Publish+Mail
+    <a class="novisit" href="{%url paylogic.views.publish issue.key.id%}">Publish+Mail
     Comments</a> ('m')
     |
     <a class="novisit" href="javascript:draftMessage.dialog_show()">Edit draft message</a> ('M')

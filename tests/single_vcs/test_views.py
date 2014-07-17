@@ -1,5 +1,6 @@
 """Codereview views tests."""
 import pytest
+from paylogic import views
 
 
 @pytest.mark.parametrize('user_permissions', ([],))
@@ -44,6 +45,34 @@ def test_diff2(app, issue, patchset, patch, patch_filename, patch_text, patch_co
     assert patch_filename in response.pyquery('h2').text()
     assert 'LEFT RIGHT {patch_content} {patch_content} LEFT RIGHT'.format(
         patch_content=patch_content) in response.pyquery('#thecode').text()
+
+
+def test_publish(app, issue2, monkeypatch):
+    """Test publishing comments.
+
+    Comments are made by user on an issue created by user2. In addition, user will assign the case back to user2.
+    """
+    def fake_fogbugz_assign_case(case_id, target):
+        setattr(fake_fogbugz_assign_case, 'case_id', case_id)
+        setattr(fake_fogbugz_assign_case, 'target', target)
+
+    fogbugz_users = (
+        (5, 'User one'),
+        (10, 'User two'),
+        (15, 'user three'),
+    )
+    assign_to = fogbugz_users[0]
+
+    monkeypatch.setattr(views, 'get_fogbugz_assignees', lambda case_number: fogbugz_users)
+    monkeypatch.setattr(views, 'fogbugz_assign_case', fake_fogbugz_assign_case)
+
+    response = app.get('/{0}/publish'.format(issue2.id))
+    response.forms['publish-form']['assign_to'] = assign_to[0]
+    submit_response = response.forms['publish-form'].submit()
+
+    assert submit_response.status_code == 302
+    assert fake_fogbugz_assign_case.target == unicode(assign_to[0])
+    assert views.get_case_id(issue2) == fake_fogbugz_assign_case.case_id
 
 
 @pytest.mark.parametrize('user_permissions', (['view_issue', 'approve_patchset'],))
