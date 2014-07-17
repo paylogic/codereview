@@ -29,6 +29,7 @@ class GatekeeperApprove(forms.Form):
         widget.options['minimumInputLength'] = 0
         widget.options['maximumSelectionSize'] = 1
         widget.options['width'] = '200px'
+        widget.options['placeholder'] = 'Select target branch'
 
         widget.url = widget.options['ajax']['url'] = reverse(
             self.fields['target_branch'].widget.view, kwargs=dict(case_id=case_id))
@@ -60,27 +61,6 @@ class PublishForm(forms.Form):
     no_redirect = forms.BooleanField(required=False,
                                      widget=forms.HiddenInput())
 
-    def __init__(self, case_id, *args, **kwargs):
-        super(PublishForm, self).__init__(*args, **kwargs)
-
-
-class MiniPublishForm(forms.Form):
-
-    reviewers = forms.CharField(required=False,
-                                max_length=MAX_REVIEWERS,
-                                widget=AccountInput(attrs={'size': 60}))
-    cc = forms.CharField(required=False,
-                         max_length=MAX_CC,
-                         label='CC',
-                         widget=AccountInput(attrs={'size': 60}))
-    send_mail = forms.BooleanField(required=False)
-    message = forms.CharField(required=False,
-                              max_length=MAX_MESSAGE,
-                              widget=forms.Textarea(attrs={'cols': 60}))
-    message_only = forms.BooleanField(required=False,
-                                      widget=forms.HiddenInput())
-    no_redirect = forms.BooleanField(required=False,
-                                     widget=forms.HiddenInput())
     assign_to = HeavySelect2TagField(
         'assign_to',
         data_view='lookup_case_assigned',
@@ -91,11 +71,12 @@ class MiniPublishForm(forms.Form):
 
         :param case_id: `int` Fogbugz case id.
         """
-        super(MiniPublishForm, self).__init__(*args, **kwargs)
+        super(PublishForm, self).__init__(*args, **kwargs)
         widget = self.fields['assign_to'].widget
         widget.options['minimumInputLength'] = 0
         widget.options['maximumSelectionSize'] = 1
         widget.options['width'] = '200px'
+        widget.options['placeholder'] = 'Select new assignee'
 
         widget.url = widget.options['ajax']['url'] = reverse(
             self.fields['assign_to'].widget.view, kwargs=dict(case_id=case_id))

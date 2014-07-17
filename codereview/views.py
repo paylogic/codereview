@@ -98,10 +98,7 @@ class AccountInput(forms.TextInput):
             'all': ('autocomplete/jquery.autocomplete.css',)
         }
         js = (
-            'autocomplete/lib/jquery.js',
-            'autocomplete/lib/jquery.bgiframe.min.js',
-            'autocomplete/lib/jquery.ajaxQueue.js',
-            'autocomplete/jquery.autocomplete.js'
+            'autocomplete/jquery.autocomplete.min.js',
         )
 
     def render(self, name, value, attrs=None):
