@@ -9,6 +9,16 @@ function discard(btn) {
   return false;
 }
 draftMessage = new M_draftMessage({{issue.key.id}}, true);
+$(document).ready(function() {
+    setTimeout(function() {
+        $('#{{form.assign_to.auto_id}}').select2('open');
+    }, 500);
+    $('#{{form.assign_to.auto_id}}').on('select2-loaded', function(event) {
+        if (event.items.results) {
+            $(this).select2('val', event.items.results[0].id).select2('close');
+        }
+    })
+});
 // -->
 </script>
 <h2>Publish + Mail Draft Comments</h2>
@@ -18,9 +28,6 @@ draftMessage = new M_draftMessage({{issue.key.id}}, true);
         method="post" id="publish-form">
   <input type="hidden" name="xsrf_token" value="{{xsrf_token}}">
   <table>
-  {%ifnotequal user issue.owner%}
-  <tr><th>Subject:</th><td>{{issue.subject}}</td></tr>
-  {%endifnotequal%}
   {{form}}
   <tr>
     <td></td>

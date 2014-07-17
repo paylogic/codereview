@@ -22,7 +22,7 @@ from codereview.engine import ParsePatchSet
 
 from paylogic import measurements
 from paylogic.vcs import GuessVCS, GitVCS
-from paylogic.forms import GatekeeperApprove, PublishForm, MiniPublishForm
+from paylogic.forms import GatekeeperApprove, PublishForm
 
 import logging
 import logging.handlers
@@ -633,10 +633,7 @@ def publish(request):
     """ /<issue>/publish - Publish draft comments and send mail."""
     issue = request.issue
     case_id = get_case_id(request.issue)
-    if request.user == issue.owner:
-        form_class = PublishForm
-    else:
-        form_class = MiniPublishForm
+    form_class = PublishForm
     draft_message = None
     if not request.POST.get('message_only', None):
         query = models.Message.gql(('WHERE issue = :1 AND sender = :2 '
