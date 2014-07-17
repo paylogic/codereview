@@ -654,8 +654,7 @@ def publish(request):
         reviewers = [models.Account.get_nickname_for_email(reviewer,
                                                            default=reviewer)
                      for reviewer in reviewers]
-        ccs = [models.Account.get_nickname_for_email(cc, default=cc)
-               for cc in cc]
+        ccs = [models.Account.get_nickname_for_email(email, default=email) for email in cc]
         tbd, comments = views._get_draft_comments(request, issue, True)
         preview = views._get_draft_details(request, comments)
         if draft_message is None:
@@ -670,11 +669,13 @@ def publish(request):
             'send_mail': True,
             'message': msg,
         })
-        return views.respond(request, 'publish.html', {'form': form,
-                                                 'issue': issue,
-                                                 'preview': preview,
-                                                 'draft_message': draft_message,
-                                                 })
+        return views.respond(
+            request, 'publish.html', {
+                'form': form,
+                'issue': issue,
+                'preview': preview,
+                'draft_message': draft_message,
+            })
 
     form = form_class(case_id, request.POST)
     if not form.is_valid():
