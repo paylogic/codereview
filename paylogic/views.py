@@ -188,14 +188,15 @@ def get_source_target_revisions(source, source_revision, target, target_revision
     """
     is_related = True
     source_revision = source.CheckRevision().strip()
+    original_target_revision = target.CheckRevision().strip()
 
     if supports_simple_cloning:
         try:
-            target_revision = source.GetCommonAncestor(target_revision)
+            target_revision = source.GetCommonAncestor(original_target_revision)
             if target_revision == source_revision:
                 raise RuntimeError('target and source revisions are same')
         except RuntimeError:
-            target_revision = target.CheckRevision().strip()
+            target_revision = original_target_revision
             is_related = False
     else:
         target_revision = target.CheckRevision().strip()
@@ -242,7 +243,6 @@ def generate_diff(original_branch, feature_branch):
 
         source_revision, target_revision, is_related = get_source_target_revisions(
             source, source_revision, target, target_revision, supports_simple_cloning)
-
         complete_diff, target_export_path, source_export_path = get_complete_diff(
             target, target_revision, source, source_revision, is_related)
         return (
