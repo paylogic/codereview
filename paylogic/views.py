@@ -175,6 +175,25 @@ def get_complete_diff(target, target_revision, source, source_revision, is_relat
         raise
 
 
+def check_repositories_related(source, target, target_revision):
+    """Check if repositories are related in given revisions.
+
+    :param source: `VersionControlSystem` object of the source repo
+    :param target: `VersionControlSystem` object of the target repo
+    :param target_revision: `string` target repository revision, can be branch name, or hash, or bookmark
+
+    :return: `True` if repositories are realted, `False` otherwise
+    """
+    try:
+        source_target_revision = source.CheckRevision(revision=target_revision).strip()
+        target_common_ancestor = target.GetCommonAncestor(source_target_revision)
+        if target_common_ancestor == source_target_revision:
+            raise RuntimeError('target and source revisions are same')
+    except RuntimeError:
+        return False
+    return True
+
+
 def get_source_target_revisions(source, source_revision, target, target_revision, supports_simple_cloning):
     """Get source and target revisions.
 
@@ -186,20 +205,16 @@ def get_source_target_revisions(source, source_revision, target, target_revision
         so we can use it to get target revision (hash) from target branch
     :return: `tuple` in form ('source_revision_hash', 'target_revision_hash', 'is_related')
     """
-    is_related = True
     source_revision = source.CheckRevision().strip()
     original_target_revision = target.CheckRevision().strip()
-
-    if supports_simple_cloning:
-        try:
-            target_revision = source.GetCommonAncestor(original_target_revision)
-            if target_revision == source_revision:
-                raise RuntimeError('target and source revisions are same')
-        except RuntimeError:
-            target_revision = original_target_revision
-            is_related = False
-    else:
-        target_revision = target.CheckRevision().strip()
+    is_related = check_repositories_related(source, target, target_revision)
+    try:
+        target_revision = source.GetCommonAncestor(target_revision)
+        if target_revision == source_revision:
+            raise RuntimeError('target and source revisions are same')
+    except RuntimeError:
+        target_revision = original_target_revision
+        is_related = False
 
     return source_revision, target_revision, is_related
 

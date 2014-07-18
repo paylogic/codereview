@@ -1271,18 +1271,19 @@ class GitVCS(VersionControlSystem):
             cwd=self.repo_dir,
             silent_ok=True)
 
-    def CheckRevision(self):
+    def CheckRevision(self, revision=None):
+        revision = revision or self.base_rev
         try:
-            out = RunShell(['git', 'rev-parse', self.base_rev, '--'],
+            out = RunShell(['git', 'rev-parse', revision, '--'],
                            cwd=self.repo_dir,
-                           silent_ok=False, ignore_stderr=False, ).split()[0].strip()
+                           silent_ok=False, ignore_stderr=False, )
         except RuntimeError:
             # Not a local branch? Try remote one
-            out = RunShell(['git', 'ls-remote', self.repo_dir, self.base_rev],
-                           silent_ok=True, ignore_stderr=True, ).split()[0].strip()
+            out = RunShell(['git', 'ls-remote', self.repo_dir, revision],
+                           silent_ok=True, ignore_stderr=True, )
         if not out:
-            raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, self.base_rev))
-        return out
+            raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, revision))
+        return out.split()[0].strip()
 
     def Pull(self, source, *args):
         args = list(args) or [source.base_rev]
@@ -1350,13 +1351,14 @@ class MercurialVCS(VersionControlSystem):
                   'pull', target.repo_dir]
                  + args)
 
-    def CheckRevision(self):
+    def CheckRevision(self, revision=None):
+        revision = revision or self.base_rev
         out = RunShell([
             'hg', 'id', '-e' if self.repo_dir.startswith('ssh:') else '-R',
-            self.repo_dir, '-r', self.base_rev, '--id'],
+            self.repo_dir, '-r', revision, '--id'],
             silent_ok=True, ignore_stderr=True)
         if not out:
-            raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, self.base_rev))
+            raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, revision))
         return out
 
     def GenerateDiff(self, target_revision, source_revision, source_path=None, files_to_skip=[]):
@@ -1534,9 +1536,9 @@ class BazaarVCS(VersionControlSystem):
             cwd = self.repo_dir
         return cwd
 
-    def CheckRevision(self):
+    def CheckRevision(self, revision=None):
         out = RunShell(
-            ['bzr', 'version-info'], cwd=self.get_cwd(),
+            ['bzr', 'version-info'] + (['-r', revision] if revision else []), cwd=self.get_cwd(),
             silent_ok=False, ignore_stderr=True)
         if not out:
             raise RuntimeError('%s: revision %s is not found' % (self.repo_dir, self.base_rev))
