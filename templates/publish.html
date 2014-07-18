@@ -15,7 +15,7 @@ $(document).ready(function() {
     }, 500);
     $('#{{form.assign_to.auto_id}}').one('select2-loaded', function(event) {
         if (event.items.results) {
-            $(this).select2('val', event.items.results[0].id).select2('close');
+            $(this).select2('val', [event.items.results[0].id]).select2('close').trigger('change');
         }
     })
 });
