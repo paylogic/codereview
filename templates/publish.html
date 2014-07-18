@@ -13,7 +13,7 @@ $(document).ready(function() {
     setTimeout(function() {
         $('#{{form.assign_to.auto_id}}').select2('open');
     }, 500);
-    $('#{{form.assign_to.auto_id}}').on('select2-loaded', function(event) {
+    $('#{{form.assign_to.auto_id}}').one('select2-loaded', function(event) {
         if (event.items.results) {
             $(this).select2('val', event.items.results[0].id).select2('close');
         }
