@@ -38,7 +38,10 @@ def create_codereview_if_neccessary_message(request, issue):
             source = GuessVCS(
                 attrdict({'revision': source_revision, 'vcs': source_vcs}), source_url)
 
-            source_revision = source.CheckRevision().strip()
+            try:
+                source_revision = source.CheckRevision().strip()
+            except RuntimeError:
+                return ''
 
             if issue.latest_patch_rev != source_revision:
                 messages_api.warning(
