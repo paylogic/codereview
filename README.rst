@@ -6,7 +6,7 @@ available at http://codereview.appspot.com/.
 However, it's a highly customized version of Rietveld. It contains several useful additions,
 bugfixes as well.
 
-If you want to use it, please read the `Development Environment` section.
+If you want to use it, please read the documentation below.
 
 .. image:: https://api.travis-ci.org/paylogic/codereview.png
    :target: https://travis-ci.org/paylogic/codereview
