@@ -1857,8 +1857,9 @@ def _get_patchset_info(request, patchset_id):
                     patch._lines = None
                     patch.parsed_deltas = []
                     for delta in patch.delta:
-                        patch.parsed_deltas.append(
-                            [patchset_id_mapping[delta], delta])
+                        if delta in patchset_id_mapping:
+                            patch.parsed_deltas.append(
+                                [patchset_id_mapping[delta], delta])
                     patch.is_new = patch.filename not in file_set_prev
             except DeadlineExceededError:
                 logging.exception(
