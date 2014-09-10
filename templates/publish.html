@@ -16,6 +16,7 @@ $(document).ready(function() {
     $('#{{form.assign_to.auto_id}}').one('select2-loaded', function(event) {
         if (event.items.results) {
             $(this).select2('val', [event.items.results[0].id]).select2('close').trigger('change');
+            $('#id_message').focus().click();
         }
     })
     setTimeout(function() {
@@ -25,6 +26,7 @@ $(document).ready(function() {
         if (event.items.results) {
             $(this).select2(
                 'val', $.map(event.items.results, function(item) {return item.id})).select2('close').trigger('change');
+            $('#id_message').focus().click();
         }
     })
 });
