@@ -9,6 +9,7 @@ from paylogic.vcs import GuessVCS
 
 
 class TargetBranchesView(Select2View):
+
     """Lookup for target branch field."""
 
     def get_results(self, request, term, page, context):
@@ -37,9 +38,20 @@ class TargetBranchesView(Select2View):
 
 
 class CaseAssignedView(Select2View):
+
     """Fetch people that a given case was assigned to."""
 
     def get_results(self, request, term, page, context):
         case_id = self.kwargs['case_id']
         possible_assignees = views.get_fogbugz_assignees(case_id)
         return (NO_ERR_RESP, False, possible_assignees)  # Any error response, Has more results, options list
+
+
+class CaseTagsView(Select2View):
+
+    """Fetch case tags."""
+
+    def get_results(self, request, term, page, context):
+        case_id = self.kwargs['case_id']
+        tags = views.get_fogbugz_tags(case_id)
+        return (NO_ERR_RESP, False, tags)  # Any error response, Has more results, options list

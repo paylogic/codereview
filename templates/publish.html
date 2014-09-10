@@ -18,6 +18,15 @@ $(document).ready(function() {
             $(this).select2('val', [event.items.results[0].id]).select2('close').trigger('change');
         }
     })
+    setTimeout(function() {
+        $('#{{form.tags.auto_id}}').select2('open');
+    }, 500);
+    $('#{{form.tags.auto_id}}').one('select2-loaded', function(event) {
+        if (event.items.results) {
+            $(this).select2(
+                'val', $.map(event.items.results, function(item) {return item.id})).select2('close').trigger('change');
+        }
+    })
 });
 // -->
 </script>

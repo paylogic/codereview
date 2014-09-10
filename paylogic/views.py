@@ -340,9 +340,16 @@ def get_fogbugz_assignees(case_number):
         return possible_assignees
 
 
-def fogbugz_assign_case(case_number, target):
+def fogbugz_assign_case(case_number, target, message, tags):
     fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=settings.FOGBUGZ_TOKEN)
-    fogbugz_instance.assign(ixBug=case_number, ixPersonAssignedTo=target)
+    fogbugz_instance.assign(ixBug=case_number, ixPersonAssignedTo=target, sEvent=message, sTags=','.join(tags))
+
+
+def get_fogbugz_tags(case_number):
+    """Get a list of case's tags."""
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=settings.FOGBUGZ_TOKEN)
+    resp = fogbugz_instance.search(q=case_number, cols='tags')
+    return [(tag.text, tag.text) for tag in resp.findAll('tag')]
 
 
 def get_issue(request, case_number, case_title):
@@ -737,8 +744,9 @@ def publish(request):
     views._notify_issue(request, issue, 'Comments published')
 
     assign_to = form.cleaned_data.get('assign_to', None)
+
     if assign_to:
-        fogbugz_assign_case(case_id, assign_to)
+        fogbugz_assign_case(case_id, assign_to, form.cleaned_data['message'], form.cleaned_data['tags'])
 
     # There are now no comments here (modulo race conditions)
     models.Account.current_user_account.update_drafts(issue, 0)

@@ -1,6 +1,10 @@
 Changelog
 =========
 
+10-9-2014
+    - Use message for fogbugz case assignment for better communication (bubenkoff)
+    - Added tags field to publish comments form to set fogbugz case tags (bubenkoff)
+
 14-7-2014
     - Give an option to assign the FB case of an issue when submitting comments.
       (esjee)

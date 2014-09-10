@@ -13,7 +13,9 @@ from codereview.views import (
 
 
 class GatekeeperApprove(forms.Form):
+
     """Gatekeeper approval form."""
+
     target_branch = HeavySelect2TagField(
         'target_branch',
         data_view='lookup_target_branches',
@@ -43,6 +45,8 @@ class GatekeeperApprove(forms.Form):
 
 class PublishForm(forms.Form):
 
+    """Publish comments forms."""
+
     subject = forms.CharField(max_length=MAX_SUBJECT,
                               widget=forms.TextInput(attrs={'size': 60}))
     reviewers = forms.CharField(required=False,
@@ -66,6 +70,11 @@ class PublishForm(forms.Form):
         data_view='lookup_case_assigned',
     )
 
+    tags = HeavySelect2TagField(
+        'tags',
+        data_view='lookup_case_tags',
+    )
+
     def __init__(self, case_id, *args, **kwargs):
         """Set the lookup url according to a given Fogbugz case_id.
 
@@ -82,9 +91,25 @@ class PublishForm(forms.Form):
             self.fields['assign_to'].widget.view, kwargs=dict(case_id=case_id))
         self.fields['assign_to'].required = False
 
+        widget = self.fields['tags'].widget
+        widget.options['minimumInputLength'] = 0
+        widget.options['width'] = '200px'
+        widget.options['placeholder'] = 'Set the fogbugz case tags'
+
+        widget.url = widget.options['ajax']['url'] = reverse(
+            self.fields['tags'].widget.view, kwargs=dict(case_id=case_id))
+        self.fields['tags'].required = False
+
     def clean_assign_to(self):
         value = self.cleaned_data.get('assign_to')
         if value:
             return value[0]
         else:
             return None
+
+    def clean_tags(self):
+        value = self.cleaned_data.get('tags')
+        if value:
+            return value
+        else:
+            return []

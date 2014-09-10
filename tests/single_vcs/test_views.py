@@ -52,9 +52,11 @@ def test_publish(app, issue2, monkeypatch):
 
     Comments are made by user on an issue created by user2. In addition, user will assign the case back to user2.
     """
-    def fake_fogbugz_assign_case(case_id, target):
+    def fake_fogbugz_assign_case(case_id, target, message, tags):
         setattr(fake_fogbugz_assign_case, 'case_id', case_id)
         setattr(fake_fogbugz_assign_case, 'target', target)
+        setattr(fake_fogbugz_assign_case, 'message', message)
+        setattr(fake_fogbugz_assign_case, 'tags', tags)
 
     fogbugz_users = (
         (5, 'User one'),
@@ -63,15 +65,23 @@ def test_publish(app, issue2, monkeypatch):
     )
     assign_to = fogbugz_users[0]
 
+    fogbugz_tags = ['tag1', 'tag2']
+    message = 'test message'
+
     monkeypatch.setattr(views, 'get_fogbugz_assignees', lambda case_number: fogbugz_users)
+    monkeypatch.setattr(views, 'get_fogbugz_tags', lambda case_number: fogbugz_tags)
     monkeypatch.setattr(views, 'fogbugz_assign_case', fake_fogbugz_assign_case)
 
     response = app.get('/{0}/publish'.format(issue2.id))
     response.forms['publish-form']['assign_to'] = assign_to[0]
+    response.forms['publish-form']['message'] = message
+    response.forms['publish-form']['tags'] = fogbugz_tags
     submit_response = response.forms['publish-form'].submit()
 
     assert submit_response.status_code == 302
     assert fake_fogbugz_assign_case.target == unicode(assign_to[0])
+    assert fake_fogbugz_assign_case.message == unicode(message)
+    assert fake_fogbugz_assign_case.tags == fogbugz_tags
     assert views.get_case_id(issue2) == fake_fogbugz_assign_case.case_id
 
 
