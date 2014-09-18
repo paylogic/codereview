@@ -728,11 +728,14 @@ def publish(request):
 
     if comments:
         logging.warn('Publishing %d comments', len(comments))
+
+    assign_to = form.cleaned_data.get('assign_to', None)
+
     msg = views._make_message(
         request, issue,
         form.cleaned_data['message'],
         comments,
-        form.cleaned_data['send_mail'],
+        not assign_to or form.cleaned_data['send_mail'],
         draft=draft_message
     )
     tbd.append(msg)
@@ -743,10 +746,8 @@ def publish(request):
 
     views._notify_issue(request, issue, 'Comments published')
 
-    assign_to = form.cleaned_data.get('assign_to', None)
-
     if assign_to:
-        fogbugz_assign_case(case_id, assign_to, form.cleaned_data['message'], form.cleaned_data['tags'])
+        fogbugz_assign_case(case_id, assign_to, msg.text, form.cleaned_data['tags'])
 
     # There are now no comments here (modulo race conditions)
     models.Account.current_user_account.update_drafts(issue, 0)

@@ -1,6 +1,9 @@
 Changelog
 =========
 
+18-9-2014
+    - Don't send an email when publish comments with case assignment for cleaner case history (bubenkoff)
+
 10-9-2014
     - Use message for fogbugz case assignment for better communication (bubenkoff)
     - Added tags field to publish comments form to set fogbugz case tags (bubenkoff)
