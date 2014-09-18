@@ -735,7 +735,7 @@ def publish(request):
         request, issue,
         form.cleaned_data['message'],
         comments,
-        not assign_to or form.cleaned_data['send_mail'],
+        not assign_to and form.cleaned_data['send_mail'],
         draft=draft_message
     )
     tbd.append(msg)
