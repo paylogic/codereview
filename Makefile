@@ -5,17 +5,18 @@ PATH := $(PWD)/env/bin:$(PATH)
 python_version := 2.6
 cov_report := html
 index_url := https://pypi.python.org/simple/
+extra_index_url := $(index_url)
 wheel_args := --use-wheel
-pip_args := $(wheel_args) --index-url=$(index_url) --allow-all-external --download-cache "$(DOWNLOAD_CACHE_DIR)"
+pip_args := $(wheel_args) --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external --download-cache "$(DOWNLOAD_CACHE_DIR)"
 
 .PHONY: test clean
 
 env:
 ifndef local_env
 	PATH=/usr/bin/:/usr/local/bin virtualenv env --no-site-packages -p python$(python_version)
-	env/bin/pip install -U pip wheel --index-url=$(index_url)
-	env/bin/pip install -U setuptools --index-url=$(index_url)
-	env/bin/pip install -U devpi-client==1.2.2 --index-url=$(index_url)
+	env/bin/pip install -U pip wheel --index-url=$(index_url) --extra-index-url=$(extra_index_url)
+	env/bin/pip install -U setuptools --index-url=$(index_url) --extra-index-url=$(extra_index_url)
+	env/bin/pip install -U devpi-client==2.0.3 --index-url=$(index_url) --extra-index-url=$(extra_index_url)
 endif
 
 develop: env
@@ -52,7 +53,7 @@ dependencies:
 	sudo apt-get install `cat DEPENDENCIES* | grep -v '#'` -y
 
 wheel: clean env
-	$(eval pip_args := --no-use-wheel --index-url=$(index_url) --allow-all-external)
+	$(eval pip_args := --no-use-wheel --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external)
 	rm -rf $(DOWNLOAD_CACHE_DIR)
 	rm -rf $(WHEEL_DIR)
 	mkdir -p $(DOWNLOAD_CACHE_DIR)
