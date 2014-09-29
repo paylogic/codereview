@@ -1,0 +1,20 @@
+{%extends "base.html"%}
+{%block title1%}Authorize yourself in fogbugz{%endblock%}
+{%block body%}
+<h2>Authorize yourself in fogbugz</h2>
+
+<div>
+  <form action="{%url fogbugz_authorize%}"
+        method="post" id="fogbugz-authorize-form">
+  <input type="hidden" name="xsrf_token" value="{{xsrf_token}}">
+  <table>
+  {{form}}
+  <tr>
+    <td>
+      <input type="submit" value="Authorize" />
+    </td>
+  </tr>
+  </table>
+  </form>
+
+{%endblock%}

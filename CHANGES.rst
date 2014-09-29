@@ -1,6 +1,9 @@
 Changelog
 =========
 
+29-09-2014
+    - Impersonate user for Fogbugz communication (bubenkoff)
+
 18-9-2014
     - Don't send an email when publish comments with case assignment for cleaner case history (bubenkoff)
 

@@ -652,6 +652,8 @@ class Account(db.Model):
     lower_email = db.StringProperty()
     lower_nickname = db.StringProperty()
     xsrf_secret = db.TextProperty()  # blob
+    fogbugz_token = db.StringProperty()
+    """Fogbuzg authorization toke."""
 
     # Note that this doesn't get called when doing multi-entity puts.
     def put(self):

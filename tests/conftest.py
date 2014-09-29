@@ -355,7 +355,11 @@ def mocked_fogbugz_info(monkeypatch, case_id, source_repo_url, target_repo_url, 
 @pytest.fixture(autouse=True)
 def mocked_fogbugz(monkeypatch):
     """Mock Fogbugz class to avoid external connections."""
-    monkeypatch.setattr(fogbugz, 'FogBugz', mock.Mock())
+    mocked_fogbugz = mock.Mock()
+    mocked_fogbugz_instance = mock.Mock()
+    mocked_fogbugz.return_value = mocked_fogbugz_instance
+    monkeypatch.setattr(fogbugz, 'FogBugz', mocked_fogbugz)
+    return mocked_fogbugz
 
 
 @pytest.fixture

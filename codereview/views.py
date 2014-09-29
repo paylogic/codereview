@@ -359,6 +359,8 @@ class SettingsForm(forms.Form):
         required=False,
         help_text='You must accept the invite for this to work.')
 
+    fogbugz_token = forms.CharField(required=False)
+
     def clean_nickname(self):
         nickname = self.cleaned_data.get('nickname')
         # Check for allowed characters
@@ -3672,6 +3674,7 @@ def settings(request):
                                      'column_width': default_column_width,
                                      'notify_by_email': account.notify_by_email,
                                      'notify_by_chat': account.notify_by_chat,
+                                     'fogbugz_token': account.fogbugz_token,
                                      })
         chat_status = None
         if account.notify_by_chat:
@@ -3697,6 +3700,7 @@ def settings(request):
         must_invite = notify_by_chat and not account.notify_by_chat
         account.notify_by_chat = notify_by_chat
         account.fresh = False
+        account.fogbugz_token = form.cleaned_data['fogbugz_token']
         account.put()
         if must_invite:
             logging.info('Sending XMPP invite to %s', account.email)

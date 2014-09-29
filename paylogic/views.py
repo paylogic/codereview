@@ -8,7 +8,7 @@ import fogbugz
 
 from django import db as django_db
 from django.conf import settings
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, user_passes_test
 from django.contrib.messages import api as messages_api
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
@@ -22,7 +22,7 @@ from codereview.engine import ParsePatchSet
 
 from paylogic import measurements
 from paylogic.vcs import GuessVCS, GitVCS
-from paylogic.forms import GatekeeperApprove, PublishForm
+from paylogic.forms import GatekeeperApprove, PublishForm, FogbugzAuthorizeForm
 
 import logging
 import logging.handlers
@@ -48,6 +48,44 @@ def token_required(func):
         return func(request, *args, **kwds)
 
     return token_wrapper
+
+
+def user_has_fogbugz_token(user):
+    """Return `True` if user has valid fogbugz token stored in the profile."""
+    token = user.get_profile().fogbugz_token
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=token)
+    try:
+        fogbugz_instance.viewSettings()
+    except fogbugz.FogBugzAPIError:
+        return False
+    return True
+
+
+fogbugz_token_required = user_passes_test(user_has_fogbugz_token, '/fogbugz/authorize')
+"""Decorator that redirects to a special fogbugz login page to get and store fogbugz token in the user's profile."""
+
+
+def fogbugz_authorize(request):
+    """Authorize user in the fogbugz and store returned auth token in the profile."""
+    next = request.REQUEST.get('next')
+    form_class = FogbugzAuthorizeForm
+    if request.method == 'POST':
+        form = form_class(data=request.POST)
+        if form.is_valid():
+            fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL)
+            fogbugz_instance.logon(form.cleaned_data['username'], form.cleaned_data['password'])
+            profile = request.user.get_profile()
+            profile.fogbugz_token = fogbugz_instance._token
+            profile.save()
+            messages_api.success(request, 'Successfully authorized in fogbugz.')
+            return HttpResponseRedirect(next)
+    else:
+        form = form_class(initial=dict(next=next))
+
+    return views.respond(
+        request, 'fogbugz_authorize.html', {
+            'form': form,
+        })
 
 
 def log(msg, *args):
@@ -303,9 +341,9 @@ def get_fogbugz_case_info(case_number):
     )
 
 
-def get_fogbugz_assignees(case_number):
+def get_fogbugz_assignees(request, case_number):
     """Get a list of people that a given case has been assigned to."""
-    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=settings.FOGBUGZ_TOKEN)
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.get_profile().fogbugz_token)
     resp = fogbugz_instance.search(q=case_number, cols='events')
     possible_assignees = []
     fetched_person_ids = set()
@@ -340,14 +378,14 @@ def get_fogbugz_assignees(case_number):
         return possible_assignees
 
 
-def fogbugz_assign_case(case_number, target, message, tags):
-    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=settings.FOGBUGZ_TOKEN)
+def fogbugz_assign_case(request, case_number, target, message, tags):
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.get_profile().fogbugz_token)
     fogbugz_instance.assign(ixBug=case_number, ixPersonAssignedTo=target, sEvent=message, sTags=','.join(tags))
 
 
-def get_fogbugz_tags(case_number):
+def get_fogbugz_tags(request, case_number):
     """Get a list of case's tags."""
-    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=settings.FOGBUGZ_TOKEN)
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.get_profile().fogbugz_token)
     resp = fogbugz_instance.search(q=case_number, cols='tags')
     return [(tag.text, tag.text) for tag in resp.findAll('tag')]
 
@@ -649,6 +687,7 @@ def mergekeeper_close(request, case_id):
 
 
 @permission_required('codereview.add_comment')
+@fogbugz_token_required
 @views.issue_required
 @views.xsrf_required
 def publish(request):
@@ -747,7 +786,7 @@ def publish(request):
     views._notify_issue(request, issue, 'Comments published')
 
     if assign_to:
-        fogbugz_assign_case(case_id, assign_to, msg.text, form.cleaned_data['tags'])
+        fogbugz_assign_case(request, case_id, assign_to, msg.text, form.cleaned_data['tags'])
 
     # There are now no comments here (modulo race conditions)
     models.Account.current_user_account.update_drafts(issue, 0)

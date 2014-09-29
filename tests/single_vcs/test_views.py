@@ -1,5 +1,12 @@
 """Codereview views tests."""
 import pytest
+
+import mock
+
+import fogbugz
+
+from django.conf import settings
+
 from paylogic import views
 
 
@@ -47,12 +54,39 @@ def test_diff2(app, issue, patchset, patch, patch_filename, patch_text, patch_co
         patch_content=patch_content) in response.pyquery('#thecode').text()
 
 
+def test_fogbugz_auth(app, issue2, monkeypatch, mocked_fogbugz, user):
+    """Test fogbugz authorization for and decorator."""
+    mocked_fogbugz_instance = mocked_fogbugz.return_value
+    mocked_fogbugz_instance.viewSettings = mock.Mock()
+    mocked_fogbugz_instance.viewSettings.side_effect = fogbugz.FogBugzAPIError('failed')
+
+    # try to go to publish form without the fogbugz token in the user profile
+    response = app.get('/{0}/publish'.format(issue2.id))
+    # should redirect to the FB auth form
+    assert response.headers['Location'].endswith('/fogbugz/authorize?next=/1/publish')
+    response = response.follow()
+    form = response.forms['fogbugz-authorize-form']
+    form['username'] = 'foo'
+    form['password'] = 'bar'
+    mocked_fogbugz_instance._token = 'token'
+    response = form.submit()
+    # form should store the token in the profile
+    assert user.get_profile().fogbugz_token == 'token'
+
+    # now we can use publish form
+    mocked_fogbugz_instance.viewSettings.side_effect = None
+    response = app.get('/{0}/publish'.format(issue2.id))
+    assert response.status_code == 200
+    # because the token from user's profile is used
+    mocked_fogbugz.assert_called_with(settings.FOGBUGZ_URL, token='token')
+
+
 def test_publish(app, issue2, monkeypatch):
     """Test publishing comments.
 
     Comments are made by user on an issue created by user2. In addition, user will assign the case back to user2.
     """
-    def fake_fogbugz_assign_case(case_id, target, message, tags):
+    def fake_fogbugz_assign_case(request, case_id, target, message, tags):
         setattr(fake_fogbugz_assign_case, 'case_id', case_id)
         setattr(fake_fogbugz_assign_case, 'target', target)
         setattr(fake_fogbugz_assign_case, 'message', message)
