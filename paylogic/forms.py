@@ -72,7 +72,7 @@ class PublishForm(forms.Form):
 
     tags = HeavySelect2TagField(
         'tags',
-        data_view='lookup_case_tags',
+        data_view='lookup_tags',
     )
 
     def __init__(self, case_id, *args, **kwargs):
@@ -96,8 +96,6 @@ class PublishForm(forms.Form):
         widget.options['width'] = '200px'
         widget.options['placeholder'] = 'Set the fogbugz case tags'
 
-        widget.url = widget.options['ajax']['url'] = reverse(
-            self.fields['tags'].widget.view, kwargs=dict(case_id=case_id))
         self.fields['tags'].required = False
 
     def clean_assign_to(self):

@@ -1,6 +1,10 @@
 Changelog
 =========
 
+30-09-2014
+    - Publish form - list available tags from the fogbugz (bubenkoff)
+    - Publish form - use select2 term for filtering the options (bubenkoff)
+
 29-09-2014
     - Impersonate user for Fogbugz communication (bubenkoff)
 

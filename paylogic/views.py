@@ -363,7 +363,8 @@ def get_fogbugz_assignees(request, case_number):
 
         person_name = fogbugz_instance.viewPerson(ixPerson=person_id).find('sfullname').text
         fetched_person_ids.add(person_id)
-        possible_assignees.append((person_id, person_name))
+        if request.REQUEST.get('term', '').lower() in person_name.lower():
+            possible_assignees.append((person_id, person_name))
 
     if len(possible_assignees) >= 2:
         return (
@@ -383,11 +384,16 @@ def fogbugz_assign_case(request, case_number, target, message, tags):
     fogbugz_instance.assign(ixBug=case_number, ixPersonAssignedTo=target, sEvent=message, sTags=','.join(tags))
 
 
-def get_fogbugz_tags(request, case_number):
-    """Get a list of case's tags."""
+def get_fogbugz_tags(request, case_number=None):
+    """Get a list of all available or just case's tags."""
     fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.get_profile().fogbugz_token)
-    resp = fogbugz_instance.search(q=case_number, cols='tags')
-    return [(tag.text, tag.text) for tag in resp.findAll('tag')]
+    if case_number:
+        resp = fogbugz_instance.search(q=case_number, cols='tags')
+    else:
+        resp = fogbugz_instance.listTags()
+    return [
+        (tag.text, tag.text) for tag in resp.findAll('tag')
+        if request.REQUEST.get('term', '').lower() in tag.text.lower()]
 
 
 def get_issue(request, case_number, case_title):
@@ -725,6 +731,7 @@ def publish(request):
             'reviewers': ', '.join(reviewers),
             'cc': ', '.join(ccs),
             'send_mail': True,
+            'tags': ['peer-reviewed'],
             'message': msg,
         })
         return views.respond(
@@ -733,6 +740,7 @@ def publish(request):
                 'issue': issue,
                 'preview': preview,
                 'draft_message': draft_message,
+                'case_id': case_id
             })
 
     form = form_class(case_id, request.POST)

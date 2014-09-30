@@ -11,24 +11,17 @@ function discard(btn) {
 draftMessage = new M_draftMessage({{issue.key.id}}, true);
 $(document).ready(function() {
     setTimeout(function() {
-        $('#{{form.assign_to.auto_id}}').select2('open');
-    }, 500);
-    $('#{{form.assign_to.auto_id}}').one('select2-loaded', function(event) {
-        if (event.items.results) {
-            $(this).select2('val', [event.items.results[0].id]).select2('close').trigger('change');
-            $('#id_message').focus().click();
-        }
-    })
-    setTimeout(function() {
-        $('#{{form.tags.auto_id}}').select2('open');
-    }, 500);
-    $('#{{form.tags.auto_id}}').one('select2-loaded', function(event) {
-        if (event.items.results) {
-            $(this).select2(
-                'val', $.map(event.items.results, function(item) {return item.id})).select2('close').trigger('change');
-            $('#id_message').focus().click();
-        }
-    })
+        $('#{{form.assign_to.auto_id}}').select2('disable')
+        $.ajax('/lookup/case_assigned/{{case_id}}?term=&page=1').done(function(data) {
+            $('#{{form.assign_to.auto_id}}').select2('enable');
+            $('#{{form.assign_to.auto_id}}').select2('data', [data.results[0]]).trigger('change');
+        });
+        $('#{{form.tags.auto_id}}').select2('disable')
+        $.ajax('/lookup/tags/{{case_id}}?term=&page=1').done(function(data) {
+            $('#{{form.tags.auto_id}}').select2('enable');
+            $('#{{form.tags.auto_id}}').select2('data', data.results).trigger('change');
+        })
+    }, 0)
 });
 // -->
 </script>
