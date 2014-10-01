@@ -1,7 +1,7 @@
 {%extends "base.html"%}
-{%block title1%}Authorize yourself in fogbugz{%endblock%}
+{%block title1%}Authorize yourself in the fogbugz - {%endblock%}
 {%block body%}
-<h2>Authorize yourself in fogbugz</h2>
+<h2>Please authorize yourself in the <a href="{{settings.FOGBUGZ_URL}}">fogbugz</a></h2>
 
 <div>
   <form action="{%url fogbugz_authorize%}"

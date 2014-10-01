@@ -73,18 +73,23 @@ def fogbugz_authorize(request):
         form = form_class(data=request.POST)
         if form.is_valid():
             fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL)
-            fogbugz_instance.logon(form.cleaned_data['username'], form.cleaned_data['password'])
-            profile = request.user.get_profile()
-            profile.fogbugz_token = fogbugz_instance._token
-            profile.save()
-            messages_api.success(request, 'Successfully authorized in fogbugz.')
-            return HttpResponseRedirect(next)
+            try:
+                fogbugz_instance.logon(form.cleaned_data['username'], form.cleaned_data['password'])
+            except fogbugz.FogBugzAPIError as exc:
+                form.errors['password'] = ['Authorization failed: {0}'.format(exc)]
+            else:
+                profile = request.user.get_profile()
+                profile.fogbugz_token = fogbugz_instance._token
+                profile.save()
+                messages_api.success(request, 'Successfully authorized in fogbugz.')
+                return HttpResponseRedirect(next)
     else:
         form = form_class(initial=dict(next=next))
 
     return views.respond(
         request, 'fogbugz_authorize.html', {
             'form': form,
+            'settings': settings,
         })
 
 
