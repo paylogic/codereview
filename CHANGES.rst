@@ -3,6 +3,7 @@ Changelog
 
 01-10-2014
     - Use fogbugz token for approval form (bubenkoff)
+    - Approved tag setting added on the approval form (bubenkoff)
 
 30-09-2014
     - Publish form - list available tags from the fogbugz (bubenkoff)

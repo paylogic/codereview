@@ -103,7 +103,6 @@ def test_publish(app, issue2, monkeypatch):
     message = 'test message'
 
     monkeypatch.setattr(views, 'get_fogbugz_assignees', lambda case_number: fogbugz_users)
-    monkeypatch.setattr(views, 'get_fogbugz_tags', lambda case_number: fogbugz_tags)
     monkeypatch.setattr(views, 'fogbugz_assign_case', fake_fogbugz_assign_case)
 
     response = app.get('/{0}/publish'.format(issue2.id))
@@ -120,8 +119,10 @@ def test_publish(app, issue2, monkeypatch):
 
 
 @pytest.mark.parametrize('user_permissions', (['view_issue', 'approve_patchset'],))
-def test_gatekeepers_approve(app, issue, patch, patchset_revision):
+def test_gatekeepers_approve(app, issue, patch, patchset_revision, monkeypatch):
     """Test gatekeeper approval form."""
+    fogbugz_tags = ['tag1', 'tag2']
+    monkeypatch.setattr(views, 'get_fogbugz_tags', lambda request, case_number: fogbugz_tags)
     response = app.get('/{issue.id}/'.format(**locals()))
     form = response.forms['gatekeeper-approval']
     form['target_branch'] = 'r1111'

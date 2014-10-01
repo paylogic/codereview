@@ -53,5 +53,5 @@ class TagsView(Select2View):
 
     def get_results(self, request, term, page, context):
         case_id = self.kwargs.get('case_id')
-        tags = views.get_fogbugz_tags(request, case_id)
+        tags = [(tag, tag) for tag in views.get_fogbugz_tags(request, case_id)]
         return (NO_ERR_RESP, False, tags)  # Any error response, Has more results, options list

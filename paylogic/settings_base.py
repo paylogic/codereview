@@ -193,6 +193,7 @@ FOGBUGZ_TARGET_BRANCH_FIELD_ID = "plugin_customfields_at_fogcreek_com_targetxbra
 FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID = "plugin_customfields_at_fogcreek_com_originalxbranch"
 FOGBUGZ_FEATURE_BRANCH_FIELD_ID = "plugin_customfields_at_fogcreek_com_featurexbranch"
 FOGBUGZ_CI_PROJECT_FIELD_ID = "cixproject"
+FOGBUGZ_APPROVED_TAG = 'approved'
 
 CODEREVIEW_IGNORED_FILES = ['.hg_archival.txt']
 

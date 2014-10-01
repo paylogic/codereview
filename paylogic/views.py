@@ -397,7 +397,7 @@ def get_fogbugz_tags(request, case_number=None):
     else:
         resp = fogbugz_instance.listTags()
     return [
-        (tag.text, tag.text) for tag in resp.findAll('tag')
+        tag.text for tag in resp.findAll('tag')
         if request.REQUEST.get('term', '').lower() in tag.text.lower()]
 
 
@@ -607,11 +607,15 @@ def mark_issue_approved(request, issue, case_id, target_branch):
     latest_patchset.revision = issue.latest_patch_rev
     latest_patchset.save()
 
+    tags = set(get_fogbugz_tags(request, case_id))
+    tags.add(settings.FOGBUGZ_APPROVED_TAG)
+
     fogbugz_instance.edit(**{
         "ixBug": str(case_id),
         "ixPersonAssignedTo": str(settings.FOGBUGZ_MERGEKEEPER_USER_ID),
         settings.FOGBUGZ_APPROVED_REVISION_FIELD_ID: issue.latest_reviewed_rev,
-        settings.FOGBUGZ_TARGET_BRANCH_FIELD_ID: target_branch
+        settings.FOGBUGZ_TARGET_BRANCH_FIELD_ID: target_branch,
+        'sTags': ','.join(sorted(tags))
     })
 
 

@@ -193,6 +193,9 @@ FOGBUGZ_FEATURE_BRANCH_FIELD_ID
 FOGBUGZ_CI_PROJECT_FIELD_ID
    Fogbugz field id to get CI project field values. Used for mergekeepering process
 
+FOGBUGZ_APPROVED_TAG
+   Fogbugz case tag to set when the case is approved by the gatekeeper
+
 CODEREVIEW_IGNORED_FILES
    List of files to ignore when creating or updating the codereview issue
 
