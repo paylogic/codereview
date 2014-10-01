@@ -574,14 +574,14 @@ def find_codereview_from_fogbugz(request):
     return HttpResponseRedirect('/%s/show' % issue.id)
 
 
-def mark_issue_approved(issue, case_id, target_branch):
+def mark_issue_approved(request, issue, case_id, target_branch):
     """Mark issue's latest revision as approved.
 
     :param issue: `Issue` object to mark it's latest revision as approved
     :param case_id: `str` id of the Fogbugz case to assign the case to Mergekeepers user
     :param target_branch: `str` target branch to merge approved revision into.
     """
-    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=settings.FOGBUGZ_TOKEN)
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.get_profile().fogbugz_token)
 
     # get information from the fogbugz case
     _, _, _, _, ci_project = get_fogbugz_case_info(case_id)
@@ -626,6 +626,7 @@ def get_case_id(issue):
     return match.group(1)
 
 
+@fogbugz_token_required
 @views.login_required
 @permission_required('codereview.approve_patchset')
 @views.post_required
@@ -652,7 +653,7 @@ def gatekeeper_mark_ok(request, issue_id):
                 'Please do so and try again.')
         target_branch = form.cleaned_data['target_branch']
 
-        mark_issue_approved(issue, case_id, target_branch)
+        mark_issue_approved(request, issue, case_id, target_branch)
         messages_api.success(
             request, 'Revision {issue.latest_reviewed_rev} was sucesssfully approved '
             'on issue {issue.id} '

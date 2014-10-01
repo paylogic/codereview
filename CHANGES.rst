@@ -1,6 +1,9 @@
 Changelog
 =========
 
+01-10-2014
+    - Use fogbugz token for approval form (bubenkoff)
+
 30-09-2014
     - Publish form - list available tags from the fogbugz (bubenkoff)
     - Publish form - use select2 term for filtering the options (bubenkoff)
