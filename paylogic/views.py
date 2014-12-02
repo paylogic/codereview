@@ -457,7 +457,7 @@ def create_file_content(patch, exp_path, filename):
 
     :return: `Patch` object with the content read from given filename.
     """
-    file_path = os.path.join(exp_path, filename)
+    file_path = os.path.join(exp_path, filename).encode('utf-8')
     args = {'text': ''}
 
     if os.path.exists(file_path):
