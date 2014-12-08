@@ -7,6 +7,6 @@ lxml==3.3.5
 MySQL-python  # not pinned because of compartibility issues, as package might be system-wide installed
 python-memcached==1.53
 python-statsd==1.6.3
-raven==5.1.1
+raven  # not pinned because of compartibility issues
 requests==2.3.0
 subprocess32==3.2.5rc1
