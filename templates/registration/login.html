@@ -1,7 +1,6 @@
-<html>
-<head><title>Sign in with your Fogbugz username and password.</title></head>
-<body>
+{% extends "base.html" %}
 
+{% block body %}
 <h1>Sign in with your Fogbugz username and password.</h1>
 
 <p>No fogbugz passwords will be stored.</p>
@@ -19,4 +18,4 @@
 <input type="submit" value="login" />
 <input type="hidden" name="next" value="{{ next }}" />
 </form>
-</body></html>
+{% endblock %}
