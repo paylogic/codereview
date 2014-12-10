@@ -290,7 +290,11 @@ def get_fogbugz_case_info(request, case_number):
 
     :return: `tuple` in form ('case_number', 'case_title', 'original_branch', 'feature_branch', 'ci_project')
     """
-    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.fogbugzprofile.token)
+    try:
+        token = request.user.fogbugzprofile.token
+    except Exception:
+        return (None, None, None, None, None)
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=token)
     resp = fogbugz_instance.search(
         q='ixBug:"{0}"'.format(case_number),
         cols=','.join([
