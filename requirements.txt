@@ -1,4 +1,2 @@
 -r requirements-public.txt
 django-gae2django==0.2paylogic2
-django-openid-auth==0.5paylogic4
-python-openid==2.2.5google

@@ -103,7 +103,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django_openid_auth',
+    'django_auth_fogbugz',
     'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.staticfiles',
@@ -117,16 +117,9 @@ INSTALLED_APPS = (
     'codereview',
 )
 
-OPENID_CREATE_USERS = True
-OPENID_SSO_SERVER_URL = 'https://google.com/accounts/o8/site-xrds?hd=paylogic.eu'
-OPENID_USE_AS_ADMIN_LOGIN = False
-
-LOGIN_URL = '/openid/login/'
-LOGIN_REDIRECT_URL = '/'
-
 AUTHENTICATION_BACKENDS = (
+    'django_auth_fogbugz.backend.FogBugzBackend',
     'django.contrib.auth.backends.ModelBackend',
-    'django_openid_auth.auth.OpenIDBackend',
 )
 
 # Set your DSN value
@@ -180,8 +173,16 @@ ORIGINAL_BRANCH_DEFAULT_PREFIX = 'hg+/var/hg/codereview/example.com#'
 
 TEMP_FOLDER = '/var/tmp/codereview/'
 
-FOGBUGZ_URL = 'https://fogbugz.example.com'
+AUTH_FOGBUGZ_SERVER = FOGBUGZ_URL = 'https://fogbugz.example.com'
 FOGBUGZ_TOKEN = 'fogbugz-token'
+
+AUTH_FOGBUGZ_AUTO_CREATE_USERS = True
+
+AUTH_FOGBUGZ_ENABLE_PROFILE = True
+
+AUTH_FOGBUGZ_ENABLE_PROFILE_TOKEN = True
+
+SESSION_COOKIE_AGE = 1209600  # (2 weeks, in seconds)
 
 # Override this token in your settings_local.py file in order to
 # API functions

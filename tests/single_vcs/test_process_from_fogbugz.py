@@ -6,8 +6,6 @@ import pytest
 from django import db
 from django.core import urlresolvers
 
-from codereview import models
-
 from paylogic import views
 
 

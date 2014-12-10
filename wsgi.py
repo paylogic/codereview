@@ -17,6 +17,9 @@ gae2django.install(server_software='Django')
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'paylogic.settings_paylogic'
 
+# apply patches
+import paylogic.patches  # NOQA
+
 import django.core.handlers.wsgi
 
 application = django.core.handlers.wsgi.WSGIHandler()

@@ -3,7 +3,6 @@ from django.conf.urls.defaults import *
 from django.contrib import admin
 from django.views import debug
 
-from paylogic import patches  # NOQA
 from paylogic import lookups
 
 # from codereview.urls import urlpatterns
@@ -18,7 +17,6 @@ urlpatterns = patterns(
         {'document_root': 'static/'}),                  # because of contrib.staticfiles
     url(r'^accounts/login/$', 'django.contrib.auth.views.login', name='auth_login'),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout_then_login', name='auth_logout'),
-    url(r'^fogbugz/authorize/?$', 'paylogic.views.fogbugz_authorize', name='fogbugz_authorize'),
     ('^admin/', include(admin.site.urls)),
     (r'^openid/', include('django_openid_auth.urls')),
     ('^_ah/admin', 'rietveld_helper.views.admin_redirect'),

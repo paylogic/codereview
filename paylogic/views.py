@@ -22,7 +22,7 @@ from codereview.engine import ParsePatchSet
 
 from paylogic import measurements
 from paylogic.vcs import GuessVCS, GitVCS
-from paylogic.forms import GatekeeperApprove, PublishForm, FogbugzAuthorizeForm
+from paylogic.forms import GatekeeperApprove, PublishForm
 
 import logging
 import logging.handlers
@@ -52,45 +52,14 @@ def token_required(func):
 
 def user_has_fogbugz_token(user):
     """Return `True` if user has valid fogbugz token stored in the profile."""
-    token = user.get_profile().fogbugz_token
-    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=token)
     try:
-        fogbugz_instance.viewSettings()
-    except fogbugz.FogBugzAPIError:
+        return bool(user.fogbugzprofile.token)
+    except Exception:
         return False
-    return True
 
 
-fogbugz_token_required = user_passes_test(user_has_fogbugz_token, '/fogbugz/authorize')
+fogbugz_token_required = user_passes_test(user_has_fogbugz_token, '/accounts/login')
 """Decorator that redirects to a special fogbugz login page to get and store fogbugz token in the user's profile."""
-
-
-def fogbugz_authorize(request):
-    """Authorize user in the fogbugz and store returned auth token in the profile."""
-    next = request.REQUEST.get('next')
-    form_class = FogbugzAuthorizeForm
-    if request.method == 'POST':
-        form = form_class(data=request.POST)
-        if form.is_valid():
-            fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL)
-            try:
-                fogbugz_instance.logon(form.cleaned_data['username'], form.cleaned_data['password'])
-            except fogbugz.FogBugzAPIError as exc:
-                form.errors['password'] = ['Authorization failed: {0}'.format(exc)]
-            else:
-                profile = request.user.get_profile()
-                profile.fogbugz_token = fogbugz_instance._token
-                profile.save()
-                messages_api.success(request, 'Successfully authorized in fogbugz.')
-                return HttpResponseRedirect(next)
-    else:
-        form = form_class(initial=dict(next=next))
-
-    return views.respond(
-        request, 'fogbugz_authorize.html', {
-            'form': form,
-            'settings': settings,
-        })
 
 
 def log(msg, *args):
@@ -314,14 +283,14 @@ def generate_diff(original_branch, feature_branch):
                 log("Finished cleaning up temporary clone {0}".format(path))
 
 
-def get_fogbugz_case_info(case_number):
+def get_fogbugz_case_info(request, case_number):
     """Get Fogbugz case information.
 
     :param: case_number: `int` Fogbugz case number.
 
     :return: `tuple` in form ('case_number', 'case_title', 'original_branch', 'feature_branch', 'ci_project')
     """
-    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=settings.FOGBUGZ_TOKEN)
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.fogbugzprofile.token)
     resp = fogbugz_instance.search(
         q='ixBug:"{0}"'.format(case_number),
         cols=','.join([
@@ -348,7 +317,7 @@ def get_fogbugz_case_info(case_number):
 
 def get_fogbugz_assignees(request, case_number):
     """Get a list of people that a given case has been assigned to."""
-    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.get_profile().fogbugz_token)
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.fogbugzprofile.token)
     resp = fogbugz_instance.search(q=case_number, cols='events')
     possible_assignees = []
     fetched_person_ids = set()
@@ -385,13 +354,13 @@ def get_fogbugz_assignees(request, case_number):
 
 
 def fogbugz_assign_case(request, case_number, target, message, tags):
-    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.get_profile().fogbugz_token)
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.fogbugzprofile.token)
     fogbugz_instance.assign(ixBug=case_number, ixPersonAssignedTo=target, sEvent=message, sTags=','.join(tags))
 
 
 def get_fogbugz_tags(request, case_number=None):
     """Get a list of all available or just case's tags."""
-    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.get_profile().fogbugz_token)
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.fogbugzprofile.token)
     if case_number:
         resp = fogbugz_instance.search(q=case_number, cols='tags')
     else:
@@ -499,6 +468,7 @@ def fill_original_files(patches, target_export_path, source_export_path):
         patch.put()
 
 
+@fogbugz_token_required
 @views.login_required
 @permission_required('codereview.add_issue')
 def process_codereview_from_fogbugz(request):
@@ -507,7 +477,8 @@ def process_codereview_from_fogbugz(request):
     :param request: HTTP request.
     """
     # get information from the fogbugz case
-    case_number, case_title, original_branch, feature_branch, _ = get_fogbugz_case_info(request.REQUEST['case'])
+    case_number, case_title, original_branch, feature_branch, _ = get_fogbugz_case_info(
+        request, request.REQUEST['case'])
 
     # get codereview issue
     issue = get_issue(request, case_number, case_title)
@@ -586,10 +557,10 @@ def mark_issue_approved(request, issue, case_id, target_branch):
     :param case_id: `str` id of the Fogbugz case to assign the case to Mergekeepers user
     :param target_branch: `str` target branch to merge approved revision into.
     """
-    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.get_profile().fogbugz_token)
+    fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.fogbugzprofile.token)
 
     # get information from the fogbugz case
-    _, _, _, _, ci_project = get_fogbugz_case_info(case_id)
+    _, _, _, _, ci_project = get_fogbugz_case_info(request, case_id)
 
     if not ci_project or ci_project == '--':
         raise RuntimeError(

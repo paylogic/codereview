@@ -1,6 +1,9 @@
 Changelog
 =========
 
+10-12-2014
+    - Use fogbugz auth instead of deprecated google openid (bubenkoff)
+
 01-10-2014
     - Use fogbugz token for approval form (bubenkoff)
     - Approved tag setting added on the approval form (bubenkoff)

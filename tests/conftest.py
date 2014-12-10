@@ -26,6 +26,8 @@ from django.core import urlresolvers
 from django.contrib.auth import models as auth_models
 from django.conf import settings
 
+from django_auth_fogbugz.models import FogBugzProfile
+
 from paylogic import patches  # NOQA
 from codereview import models
 from paylogic import views
@@ -279,11 +281,26 @@ def user_permissions():
 
 
 @pytest.fixture
-def user(db, user_name, user_email, user_password, user_permissions):
+def fogbugz_user_token():
+    """Fogbugz user token."""
+    return 'some-token'
+
+
+@pytest.fixture
+def fogbugz_user_id():
+    """Fogbugz user id."""
+    return 12345
+
+
+@pytest.fixture
+def user(db, user_name, user_email, user_password, user_permissions, fogbugz_user_token, fogbugz_user_id):
     """User."""
     user = auth_models.User.objects.create_user(user_name, user_email, user_password)
     for permission in user_permissions:
         user.user_permissions.add(auth_models.Permission.objects.get(codename=permission))
+    fogbugzprofile = FogBugzProfile(token=fogbugz_user_token, ixPerson=fogbugz_user_id)
+    fogbugzprofile.save()
+    user.fogbugzprofile = fogbugzprofile
     user.save()
     return user
 
@@ -340,7 +357,7 @@ def ci_project():
 @pytest.fixture(autouse=True)
 def mocked_fogbugz_info(monkeypatch, case_id, source_repo_url, target_repo_url, target_repo_branch, ci_project):
     """Mock mocked_fogbugz_case_info function using given fixtures."""
-    def mocked_fogbugz_case_info(request):
+    def mocked_fogbugz_case_info(request, case_id):
         return (
             case_id,
             'Some title',

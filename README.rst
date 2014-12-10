@@ -24,7 +24,7 @@ Custom features implemented
 
 * Improved django admin to simplify user management and other administrative tasks
 
-* OpenId (Google Apps Single Sign On) authentication integrated
+* Fogbugz authentication integrated
 
 * Bugfixes related to deployment on local server, not Google App Engine
 
@@ -53,7 +53,7 @@ Then, to run the codereview server:
 
 Open a browser, go to http://127.0.0.1:8000/ and you can use the codereview tool.
 
-If you'll use openid for authentication, you'll need to grant some permissions for your user(s):
+You'll need to grant some permissions for your user(s) authenticated through fogbugz:
 
 * `codereview.add_issue` - create issue
 * `codereview.view_issue` - view issue
@@ -76,10 +76,6 @@ However, the code of those version is absolutely public, because it's just forks
 Here is the list of repository locations:
 
 * django-gae2django==0.2paylogic2 - https://code.google.com/r/bubenkoff-gae2django/source/browse/?name=urlquote-login-urls
-
-* django-openid-auth==0.5paylogic4 - https://code.launchpad.net/~bubenkoff/django-openid-auth/paylogic
-
-* python-openid==2.2.5google - https://github.com/paylogic/python-openid/tree/google
 
 Until we'll make public corporate pypi server, you can make your own releases or just install them in editable mode
 
@@ -167,6 +163,9 @@ TEMP_FOLDER
    temporary folder used to clone and export repositories
 
 FOGBUGZ_URL
+   URL of your fogbugz instance
+
+AUTH_FOGBUGZ_SERVER
    URL of your fogbugz instance
 
 FOGBUGZ_TOKEN

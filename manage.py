@@ -1,22 +1,17 @@
 #!/usr/bin/env python
+import os
+import sys
+
 import gae2django
 # Use gae2django.install(server_software='Dev') to enable a link to the
 # admin frontend at the top of each page. By default this link is hidden.
 gae2django.install(server_software='Django')
 
-from django.core.management import execute_manager
-try:
-    # Assumed to be in the same directory.
-    from paylogic import settings_paylogic as settings
-except ImportError:
-    import sys
-    raise
-    sys.stderr.write(
-        "Error: Can't find the file 'settings.py' in the directory containing %r. "
-        "It appears you've customized things.\nYou'll have to run django-admin.py, passing it your settings module.\n"
-        "(If the file settings.py does indeed exist, it's causing an ImportError somehow.)\n" % __file__)
-    sys.exit(1)
+# apply patches
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "paylogic.settings_paylogic")
+import paylogic.patches  # NOQA
 
+from django.core.management import execute_from_command_line
 
 if __name__ == "__main__":
-    execute_manager(settings)
+    execute_from_command_line(sys.argv)

@@ -111,14 +111,3 @@ class PublishForm(forms.Form):
             return value
         else:
             return []
-
-
-class FogbugzAuthorizeForm(forms.Form):
-
-    """Authorize user in the fogbugz form."""
-
-    username = forms.CharField(help_text='No user names will be stored in the codereview.')
-
-    password = forms.CharField(widget=forms.PasswordInput(), help_text='No passwords will be stored in the codereview.')
-
-    next = forms.CharField(widget=forms.HiddenInput(), required=False)

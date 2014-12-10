@@ -29,7 +29,7 @@ def create_codereview_if_neccessary_message(request, issue):
     of changes.
     """
     case_id = get_case_id(issue)
-    _, case_title, original_branch, feature_branch, ci_project = get_fogbugz_case_info(case_id)
+    _, case_title, original_branch, feature_branch, ci_project = get_fogbugz_case_info(request, case_id)
 
     if feature_branch and original_branch:
         source_vcs, source_url, source_revision, source_branch_is_local, _ = parse_branch_vcs_info(
