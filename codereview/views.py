@@ -521,7 +521,6 @@ def respond(request, template, params=None):
     params['media_url'] = django_settings.STATIC_URL
     params['special_banner'] = getattr(django_settings, 'SPECIAL_BANNER', None)
     full_path = request.get_full_path().encode('utf-8')
-    import pdb; pdb.set_trace()
     if request.user is None or not request.user.is_authenticated():
         params['sign_in'] = users.create_login_url(full_path)
     else:
