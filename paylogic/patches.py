@@ -1,9 +1,7 @@
 """Patches to apply to django."""
 
 from django.db.backends.signals import connection_created
-
 from django.db.backends.sqlite3 import base
-
 from django.core.validators import URLValidator
 
 

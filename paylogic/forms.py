@@ -1,5 +1,6 @@
 """Forms for paylogic customizations."""
 from django import forms
+from django.utils.translation import ugettext_lazy as _
 
 from django.core.urlresolvers import reverse
 from django_select2.fields import HeavySelect2TagField
@@ -10,6 +11,14 @@ from codereview.views import (
     MAX_SUBJECT,
     AccountInput,
 )
+from django.contrib.auth.forms import AuthenticationForm
+
+
+class FogbugzAuthenticationForm(AuthenticationForm):
+
+    """Override max_length for username."""
+
+    username = forms.CharField(label=_("Username"))
 
 
 class GatekeeperApprove(forms.Form):

@@ -4,6 +4,8 @@ from django.contrib import admin
 from django.views import debug
 
 from paylogic import lookups
+from paylogic.forms import FogbugzAuthenticationForm
+
 
 # from codereview.urls import urlpatterns
 
@@ -15,7 +17,8 @@ urlpatterns = patterns(
         {'document_root': 'static/'}),                  # fix the migration
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',  # from Django 1.1 to 1.3
         {'document_root': 'static/'}),                  # because of contrib.staticfiles
-    url(r'^accounts/login/$', 'django.contrib.auth.views.login', name='auth_login'),
+    url(r'^accounts/login/$', 'django.contrib.auth.views.login',
+        name='auth_login', kwargs=dict(authentication_form=FogbugzAuthenticationForm)),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout_then_login', name='auth_logout'),
     ('^admin/', include(admin.site.urls)),
     ('^_ah/admin', 'rietveld_helper.views.admin_redirect'),
