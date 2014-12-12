@@ -308,7 +308,7 @@ def get_fogbugz_case_info(request, case_number):
     def get_field(field):
         value = getattr(resp, field)
         if value is not None:
-            return value.string
+            return value.text or value.string
         else:
             return ''
 
