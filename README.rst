@@ -208,7 +208,7 @@ CODEREVIEW_VALIDATORS
 
 CODEREVIEW_TARGET_BRANCH_CHOICES_GETTER
    Function to get autompletion list for the target branch field in the gatekeeper approval form.
-   Prototype is (ci_project, original_branch, branches)
+   Prototype is (ci_project, original_branch, target_branch, branches)
 
 For the defaults of the listed settings, see `<paylogic/settings_base.py>`_.
 

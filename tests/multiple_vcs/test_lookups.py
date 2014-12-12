@@ -7,7 +7,7 @@ from django.conf import settings
 @pytest.fixture
 def taget_branch_getter_settings(ci_project):
     """Target branch getter settings."""
-    def get_target_branches_choices(_ci_project, original_branch, branches):
+    def get_target_branches_choices(_ci_project, original_branch, target_branch, branches):
         assert _ci_project == ci_project
         return [('test-branch', 'test-branch-title')]
     settings.CODEREVIEW_TARGET_BRANCH_CHOICES_GETTER = get_target_branches_choices

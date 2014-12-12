@@ -354,8 +354,15 @@ def ci_project():
     return 'ci-project'
 
 
+@pytest.fixture
+def target_branch():
+    """Target branch."""
+    return 'r1234'
+
+
 @pytest.fixture(autouse=True)
-def mocked_fogbugz_info(monkeypatch, case_id, source_repo_url, target_repo_url, target_repo_branch, ci_project):
+def mocked_fogbugz_info(
+        monkeypatch, case_id, source_repo_url, target_repo_url, target_repo_branch, ci_project, target_branch):
     """Mock mocked_fogbugz_case_info function using given fixtures."""
     def mocked_fogbugz_case_info(request, case_id):
         return (
@@ -363,7 +370,8 @@ def mocked_fogbugz_info(monkeypatch, case_id, source_repo_url, target_repo_url, 
             'Some title',
             target_repo_url,
             source_repo_url,
-            ci_project)
+            ci_project,
+            target_branch)
 
     monkeypatch.setattr(views, 'get_fogbugz_case_info',
                         mocked_fogbugz_case_info)

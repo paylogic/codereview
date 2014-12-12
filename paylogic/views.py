@@ -288,7 +288,8 @@ def get_fogbugz_case_info(request, case_number):
 
     :param: case_number: `int` Fogbugz case number.
 
-    :return: `tuple` in form ('case_number', 'case_title', 'original_branch', 'feature_branch', 'ci_project')
+    :return: `tuple` in form
+        ('case_number', 'case_title', 'original_branch', 'feature_branch', 'ci_project', 'target_branch')
     """
     try:
         token = request.user.fogbugzprofile.token
@@ -301,7 +302,8 @@ def get_fogbugz_case_info(request, case_number):
             'sTitle',
             settings.FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID,
             settings.FOGBUGZ_FEATURE_BRANCH_FIELD_ID,
-            settings.FOGBUGZ_CI_PROJECT_FIELD_ID]))
+            settings.FOGBUGZ_CI_PROJECT_FIELD_ID,
+            settings.FOGBUGZ_TARGET_BRANCH_FIELD_ID]))
 
     def get_field(field):
         value = getattr(resp, field)
@@ -315,7 +317,8 @@ def get_fogbugz_case_info(request, case_number):
         get_field('stitle'),
         get_field(settings.FOGBUGZ_ORIGINAL_BRANCH_FIELD_ID),
         get_field(settings.FOGBUGZ_FEATURE_BRANCH_FIELD_ID),
-        get_field(settings.FOGBUGZ_CI_PROJECT_FIELD_ID)
+        get_field(settings.FOGBUGZ_CI_PROJECT_FIELD_ID),
+        get_field(settings.FOGBUGZ_TARGET_BRANCH_FIELD_ID),
     )
 
 
@@ -481,7 +484,7 @@ def process_codereview_from_fogbugz(request):
     :param request: HTTP request.
     """
     # get information from the fogbugz case
-    case_number, case_title, original_branch, feature_branch, _ = get_fogbugz_case_info(
+    case_number, case_title, original_branch, feature_branch, _, target_branch = get_fogbugz_case_info(
         request, request.REQUEST['case'])
 
     # get codereview issue
@@ -564,7 +567,7 @@ def mark_issue_approved(request, issue, case_id, target_branch):
     fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.fogbugzprofile.token)
 
     # get information from the fogbugz case
-    _, _, _, _, ci_project = get_fogbugz_case_info(request, case_id)
+    _, _, _, _, ci_project, _ = get_fogbugz_case_info(request, case_id)
 
     if not ci_project or ci_project == '--':
         raise RuntimeError(
