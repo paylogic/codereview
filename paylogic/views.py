@@ -294,7 +294,7 @@ def get_fogbugz_case_info(request, case_number):
     try:
         token = request.user.fogbugzprofile.token
     except Exception:
-        return (None, None, None, None, None)
+        return (None, None, None, None, None, None)
     fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=token)
     resp = fogbugz_instance.search(
         q='ixBug:"{0}"'.format(case_number),
