@@ -1,6 +1,9 @@
 Changelog
 =========
 
+26-03-2014
+    - Confirm changeset approval (bubenkoff)
+
 10-12-2014
     - Use fogbugz auth instead of deprecated google openid (bubenkoff)
 
@@ -23,11 +26,9 @@ Changelog
     - Added tags field to publish comments form to set fogbugz case tags (bubenkoff)
 
 14-7-2014
-    - Give an option to assign the FB case of an issue when submitting comments.
-      (esjee)
+    - Give an option to assign the FB case of an issue when submitting comments (esjee)
     - Fixed an issue where the initial value for the subject when publishing comments could be greater than the
-        maximum allowed value.
-      (esjee)
+        maximum allowed value (esjee)
 
 12-7-2014
     - Added wheel support (generation and installation)

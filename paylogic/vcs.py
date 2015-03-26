@@ -48,11 +48,7 @@ import urllib
 import urllib2
 import urlparse
 
-# The md5 module was deprecated in Python 2.5.
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import md5
+from hashlib import md5
 
 # The logging verbosity:
 #  0: Errors only.
@@ -1348,8 +1344,8 @@ class MercurialVCS(VersionControlSystem):
     def Pull(self, target, *args):
         args = list(args) or ['-r', target.base_rev]
         RunShell(['hg', '-R', self.repo_dir,
-                  'pull', target.repo_dir]
-                 + args)
+                  'pull', target.repo_dir] +
+                 args)
 
     def CheckRevision(self, revision=None):
         revision = revision or self.base_rev

@@ -350,11 +350,11 @@ def get_fogbugz_assignees(request, case_number):
     if len(possible_assignees) >= 2:
         return (
             # Person who assigned review
-            [possible_assignees[1]]
+            [possible_assignees[1]] +
             # Reviewer
-            + [possible_assignees[0]]
+            [possible_assignees[0]] +
             # Everybody else
-            + possible_assignees[2:]
+            possible_assignees[2:]
         )
     else:
         return possible_assignees
@@ -645,8 +645,9 @@ def gatekeeper_mark_ok(request, issue_id):
             request, 'Revision {issue.latest_reviewed_rev} was sucesssfully approved '
             'on issue {issue.id} '
             'for Fogbugz case <a href="{settings.FOGBUGZ_URL}default.asp?{case_id}" '
-            'target="_blank">{case_id}</a>.'
-            .format(issue=issue, settings=settings, case_id=case_id))
+            'target="_blank">{case_id}</a>, '
+            'target branch: {target_branch}.'
+            .format(issue=issue, settings=settings, case_id=case_id, target_branch=target_branch))
     except Exception as exc:
         messages_api.error(
             request,
@@ -685,7 +686,7 @@ def mergekeeper_close(request, case_id):
 @views.issue_required
 @views.xsrf_required
 def publish(request):
-    """ /<issue>/publish - Publish draft comments and send mail."""
+    """/<issue>/publish - Publish draft comments and send mail."""
     issue = request.issue
     case_id = get_case_id(request.issue)
     form_class = PublishForm

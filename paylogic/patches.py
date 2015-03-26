@@ -3,6 +3,7 @@
 from django.db.backends.signals import connection_created
 from django.db.backends.sqlite3 import base
 from django.core.validators import URLValidator
+from django.contrib.auth.models import UserManager, User
 
 
 def get_new_connection(sender=None, connection=None, **kwargs):
@@ -12,8 +13,6 @@ def get_new_connection(sender=None, connection=None, **kwargs):
 
 # Connect to django signal
 connection_created.connect(get_new_connection)
-
-from django.contrib.auth.models import UserManager, User
 
 
 def get_by_natural_key(self, username):

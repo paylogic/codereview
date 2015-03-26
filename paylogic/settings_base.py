@@ -203,7 +203,9 @@ CODEREVIEW_MAX_FILE_SIZE = 1024 * 1024
 CODEREVIEW_VALIDATORS = [
 ]
 
-CODEREVIEW_TARGET_BRANCH_CHOICES_GETTER = lambda ci_project, original_branch, branches: []
+
+def CODEREVIEW_TARGET_BRANCH_CHOICES_GETTER(ci_project, original_branch, branches):
+    return []
 
 AUTO_RENDER_SELECT2_STATICS = False
 

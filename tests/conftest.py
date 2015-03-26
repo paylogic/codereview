@@ -15,22 +15,20 @@ PROJECT_PATH = os.path.dirname(os.path.dirname(__file__))
 if PROJECT_PATH not in sys.path:
     sys.path.append(PROJECT_PATH)
 
-import manage
-
-manage.__name__
+import manage  # NOQA
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings_test'
 
-import django_webtest
-from django.core import urlresolvers
-from django.contrib.auth import models as auth_models
-from django.conf import settings
+import django_webtest  # NOQA
+from django.core import urlresolvers  # NOQA
+from django.contrib.auth import models as auth_models  # NOQA
+from django.conf import settings  # NOQA
 
-from django_auth_fogbugz.models import FogBugzProfile
+from django_auth_fogbugz.models import FogBugzProfile  # NOQA
 
 from paylogic import patches  # NOQA
-from codereview import models
-from paylogic import views
+from codereview import models  # NOQA
+from paylogic import views  # NOQA
 
 
 @pytest.fixture

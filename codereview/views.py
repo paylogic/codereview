@@ -221,7 +221,7 @@ class UploadForm(forms.Form):
     def clean_base(self):
         base = self.cleaned_data.get('base')
         if not base and not self.cleaned_data.get('content_upload', False):
-            raise forms.ValidationError, 'Base URL is required.'
+            raise forms.ValidationError('Base URL is required.')
         return self.cleaned_data.get('base')
 
     def get_base(self):
@@ -241,7 +241,7 @@ class UploadContentForm(forms.Form):
         # it disallows empty files.
         super(UploadContentForm, self).clean()
         if not self.files and 'data' not in self.files:
-            raise forms.ValidationError, 'No content uploaded.'
+            raise forms.ValidationError('No content uploaded.')
         return self.cleaned_data
 
     def get_uploaded_content(self):
@@ -616,7 +616,7 @@ def _notify_issue(request, issue, message):
                                         reverse(show, args=[iid])))
     try:
         sts = xmpp.send_message(jids, message)
-    except Exception, err:
+    except Exception as err:
         logging.exception('XMPP exception %s sending for issue %d to %s',
                           err, iid, jids_str)
         return False
@@ -913,9 +913,9 @@ def json_response(func):
 
 def index(request):
     """/ - Show a list of patches."""
-    if (not request.user
-            or not request.user.is_authenticated()
-            or not request.user.has_perm('codereview.view_issue')):
+    if (not request.user or
+            not request.user.is_authenticated() or
+            not request.user.has_perm('codereview.view_issue')):
         return all(request)
     else:
         return mine(request)
@@ -1140,8 +1140,8 @@ def starred(request):
         issues = []
     else:
         issues = [issue for issue in models.Issue.get_by_id(stars)
-                  if issue is not None
-                  and _can_view_issue(request.user, issue)]
+                  if issue is not None and
+                  _can_view_issue(request.user, issue)]
         _load_users_for_issues(issues)
         _optimize_draft_counts(issues)
     return respond(request, 'starred.html', {'issues': issues})
@@ -1188,8 +1188,8 @@ def _show_user(request):
             'ORDER BY modified DESC '
             'LIMIT 100',
             user.email().lower())
-        if (issue.key() not in draft_keys and issue.owner != user
-            and _can_view_issue(request.user, issue))]
+        if (issue.key() not in draft_keys and issue.owner != user and
+            _can_view_issue(request.user, issue))]
     closed_issues = [
         issue for issue in db.GqlQuery(
             'SELECT * FROM Issue '
@@ -1206,8 +1206,8 @@ def _show_user(request):
             'ORDER BY modified DESC '
             'LIMIT 100',
             user.email())
-        if (issue.key() not in draft_keys and issue.owner != user
-            and _can_view_issue(request.user, issue))]
+        if (issue.key() not in draft_keys and issue.owner != user and
+            _can_view_issue(request.user, issue))]
     all_issues = my_issues + review_issues + closed_issues + cc_issues
     _load_users_for_issues(all_issues)
     _optimize_draft_counts(all_issues)
@@ -1590,7 +1590,7 @@ def _get_data_url(form):
     elif url:
         try:
             fetch_result = urlfetch.fetch(url)
-        except Exception, err:
+        except Exception as err:
             form.errors['url'] = [str(err)]
             return None
         if fetch_result.status_code != 200:
@@ -1678,24 +1678,24 @@ def _get_emails(form, label):
 
 def _get_emails_from_raw(raw_emails, form=None, label=None):
     emails = []
-    for email in raw_emails:
-        email = email.strip()
-        if email:
+    for email_ in raw_emails:
+        email_ = email_.strip()
+        if email_:
             try:
-                if '@' not in email:
-                    account = models.Account.get_account_for_nickname(email)
+                if '@' not in email_:
+                    account = models.Account.get_account_for_nickname(email_)
                     if account is None:
-                        raise db.BadValueError('Unknown user: %s' % email)
+                        raise db.BadValueError('Unknown user: %s' % email_)
                     db_email = db.Email(account.user.email().lower())
-                elif email.count('@') != 1:
-                    raise db.BadValueError('Invalid email address: %s' % email)
+                elif email_.count('@') != 1:
+                    raise db.BadValueError('Invalid ememail_ail address: %s' % email_)
                 else:
-                    _, tail = email.split('@')
+                    _, tail = email_.split('@')
                     if '.' not in tail:
                         raise db.BadValueError(
-                            'Invalid email address: %s' % email)
-                    db_email = db.Email(email.lower())
-            except db.BadValueError, err:
+                            'Invalid email address: %s' % email_)
+                    db_email = db.Email(email_.lower())
+            except db.BadValueError as err:
                 if form:
                     form.errors[label] = [unicode(err)]
                 return None
@@ -2442,7 +2442,7 @@ def diff(request):
     else:
         try:
             rows = _get_diff_table_rows(request, patch, context, column_width)
-        except engine.FetchError, err:
+        except engine.FetchError as err:
             return HttpResponseNotFound(str(err))
 
     _add_next_prev(patchset, patch)
@@ -2516,7 +2516,7 @@ def diff_skipped_lines(request, id_before, id_after, where, column_width):
 
     try:
         rows = _get_diff_table_rows(request, patch, None, column_width)
-    except engine.FetchError, err:
+    except engine.FetchError as err:
         return HttpResponse('Error: %s; please report!' % err, status=500)
     return _get_skipped_lines_response(rows, id_before, id_after, where, context)
 
@@ -2552,16 +2552,16 @@ def _get_skipped_lines_response(rows, id_before, id_after, where, context):
         if m:
             curr_id = int(m.groupdict().get("rowcount"))
             # expand below marker line
-            if (where == 'b'
-                    and curr_id > id_after_start and curr_id <= id_after_end):
+            if (where == 'b' and
+                    curr_id > id_after_start and curr_id <= id_after_end):
                 response_rows.append(row)
             # expand above marker line
-            elif (where == 't'
-                  and curr_id >= id_before_start and curr_id < id_before_end):
+            elif (where == 't' and
+                    curr_id >= id_before_start and curr_id < id_before_end):
                 response_rows.append(row)
             # expand all skipped lines
-            elif (where == 'a'
-                  and curr_id >= id_before_start and curr_id <= id_after_end):
+            elif (where == 'a' and
+                    curr_id >= id_before_start and curr_id <= id_after_end):
                 response_rows.append(row)
             if context is not None and len(response_rows) >= 2 * context:
                 break
@@ -2607,7 +2607,7 @@ def _get_diff2_data(request, ps_left_id, ps_right_id, patch_id, context,
     if patch_left:
         try:
             new_content_left = patch_left.get_patched_content()
-        except engine.FetchError, err:
+        except engine.FetchError as err:
             return HttpResponseNotFound(str(err))
         lines_left = new_content_left.lines
     elif patch_right:
@@ -2618,7 +2618,7 @@ def _get_diff2_data(request, ps_left_id, ps_right_id, patch_id, context,
     if patch_right:
         try:
             new_content_right = patch_right.get_patched_content()
-        except engine.FetchError, err:
+        except engine.FetchError as err:
             return HttpResponseNotFound(str(err))
         lines_right = new_content_right.lines
     elif patch_left:
@@ -2841,7 +2841,7 @@ def inline_draft(request):
     """
     try:
         return _inline_draft(request)
-    except Exception, err:
+    except Exception as err:
         logging.exception('Exception in inline_draft processing:')
         # TODO(guido): return some kind of error instead?
         # Return HttpResponse for now because the JS part expects
@@ -3012,8 +3012,8 @@ def publish(request):
         reviewers = [models.Account.get_nickname_for_email(reviewer,
                                                            default=reviewer)
                      for reviewer in reviewers]
-        ccs = [models.Account.get_nickname_for_email(cc, default=cc)
-               for cc in cc]
+        ccs = [models.Account.get_nickname_for_email(ccc, default=ccc)
+               for ccc in cc]
         tbd, comments = _get_draft_comments(request, issue, True)
         preview = _get_draft_details(request, comments)
         if draft_message is None:
@@ -3539,7 +3539,7 @@ def repo_new(request):
     if not errors:
         try:
             repo = form.save(commit=False)
-        except ValueError, err:
+        except ValueError as err:
             errors['__all__'] = unicode(err)
     if errors:
         return respond(request, 'repo_new.html', {'form': form})
@@ -3604,7 +3604,7 @@ def branch_new(request, repo_id):
     if not errors:
         try:
             branch = form.save(commit=False)
-        except ValueError, err:
+        except ValueError as err:
             errors['__all__'] = unicode(err)
     if errors:
         return respond(request, 'branch_new.html', {'form': form, 'repo': repo})
@@ -3630,7 +3630,7 @@ def branch_edit(request, branch_id):
     if not errors:
         try:
             branch = form.save(commit=False)
-        except ValueError, err:
+        except ValueError as err:
             errors['__all__'] = unicode(err)
     if errors:
         return respond(request, 'branch_edit.html',
@@ -3680,7 +3680,7 @@ def settings(request):
         if account.notify_by_chat:
             try:
                 presence = xmpp.get_presence(account.email)
-            except Exception, err:
+            except Exception as err:
                 logging.error('Exception getting XMPP presence: %s', err)
                 chat_status = 'Error (%s)' % err
             else:
@@ -3706,7 +3706,7 @@ def settings(request):
             logging.info('Sending XMPP invite to %s', account.email)
             try:
                 xmpp.send_invite(account.email)
-            except Exception, err:
+            except Exception as err:
                 # XXX How to tell user it failed?
                 logging.error('XMPP invite to %s failed', account.email)
     else:
@@ -3728,7 +3728,7 @@ def user_popup(request):
     """/user_popup - Pop up to show the user info."""
     try:
         return _user_popup(request)
-    except Exception, err:
+    except Exception as err:
         logging.exception('Exception in user_popup processing:')
         # Return HttpResponse because the JS part expects a 200 status code.
         return HttpResponse(
@@ -3772,7 +3772,7 @@ def incoming_chat(request):
     """
     try:
         msg = xmpp.Message(request.POST)
-    except xmpp.InvalidMessageError, err:
+    except xmpp.InvalidMessageError as err:
         logging.warn('Incoming invalid chat message: %s' % err)
         return HttpResponse('')
     sts = msg.reply('Sorry, Rietveld does not support chat input')
@@ -3790,7 +3790,7 @@ def incoming_mail(request, recipients):
     """
     try:
         _process_incoming_mail(request.raw_post_data, recipients)
-    except InvalidIncomingEmailError, err:
+    except InvalidIncomingEmailError as err:
         logging.debug(str(err))
     return HttpResponse('')
 
@@ -3887,8 +3887,8 @@ def customized_upload_py(request):
 
     # When served from a Google Apps instance, the account namespace needs to be
     # switched to "Google Apps only".
-    if ('AUTH_DOMAIN' in request.META
-            and request.META['AUTH_DOMAIN'] != 'gmail.com'):
+    if ('AUTH_DOMAIN' in request.META and
+            request.META['AUTH_DOMAIN'] != 'gmail.com'):
         source = source.replace('AUTH_ACCOUNT_TYPE = "GOOGLE"',
                                 'AUTH_ACCOUNT_TYPE = "HOSTED"')
 

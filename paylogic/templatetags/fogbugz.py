@@ -3,7 +3,6 @@ import os.path
 
 import django.template
 
-register = django.template.Library()
 
 from django.contrib.messages import api as messages_api
 from django.core.urlresolvers import reverse
@@ -12,6 +11,8 @@ from django.conf import settings
 from paylogic.vcs import GuessVCS
 
 from paylogic.views import get_case_id, get_fogbugz_case_info, attrdict, parse_branch_vcs_info
+
+register = django.template.Library()
 
 
 @register.filter

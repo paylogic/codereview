@@ -5,4 +5,14 @@
       {{ form.as_p }}
       <input type="submit" value="Approve {{ issue.latest_patch_rev }}" />
   </form>
+  <script type="text/javascript">
+  $("#gatekeeper-approval").submit(function() {
+        target_branch = $("input[name='target_branch']").val();
+        if (!target_branch) {
+            alert('Please select target branch.');
+            return false;
+        }
+        return confirm("Please confirm you approve this changeset for branch: " + target_branch);
+    });
+  </script>
 </div>

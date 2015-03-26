@@ -1,3 +1,4 @@
+"""Paylogic codereview urls."""
 import sys
 from django.conf.urls.defaults import *
 from django.contrib import admin
@@ -5,7 +6,7 @@ from django.views import debug
 
 from paylogic import lookups
 from paylogic.forms import FogbugzAuthenticationForm
-
+import paylogic.measurements
 
 # from codereview.urls import urlpatterns
 
@@ -40,10 +41,10 @@ urlpatterns = patterns(
     ('', include('codereview.urls')),
 )
 
-handler500 = lambda request: debug.technical_500_response(
-    request, *sys.exc_info())
 
-import paylogic.measurements
+def handler500(request):
+    return debug.technical_500_response(
+        request, *sys.exc_info())
 
 paylogic.measurements.set_timers('paylogic.views')
 paylogic.measurements.set_timers('codereview.views')
