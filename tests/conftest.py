@@ -224,7 +224,9 @@ def source_repo(
     if 'config' in vcs_commands:
         for commands in vcs_commands['config']:
             subprocess.check_call(commands, cwd=path.strpath)
-    path.join(source_test_file_name).open('w').write(source_test_file_content)
+    source_test_file = path.join(source_test_file_name)
+    source_test_file.ensure()
+    source_test_file.open('w').write(source_test_file_content)
     path.join(target_test_file_name).open(
         'w').write(target_test_file_source_content)
     subprocess.check_call(vcs_commands['add'], cwd=path.strpath)

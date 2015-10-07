@@ -871,10 +871,10 @@ class VersionControlSystem(object):
                 line = 'rename from {old_filename}'.format(
                     old_filename=old_filename)
             elif old_context_match:
-                line = '--- {old_filename}'.format(
+                line = '--- a/{old_filename}'.format(
                     old_filename=old_filename)
             elif new_context_match:
-                line = '+++ {filename}'.format(
+                line = '+++ b/{filename}'.format(
                     filename=filename)
             else:
                 # The "index" line in a git diff looks like this (long hashes elided):
