@@ -374,7 +374,7 @@ def get_fogbugz_tags(request, case_number=None):
     else:
         resp = fogbugz_instance.listTags()
     return sorted(
-        tag for tag in (tg.find('stag').text.strip() for tg in resp.findAll('tag'))
+        tag for tag in (getattr(tg.find('stag'), 'text', '').strip() for tg in resp.findAll('tag'))
         if request.REQUEST.get('term', '').lower() in tag.lower())
 
 
