@@ -373,9 +373,9 @@ def get_fogbugz_tags(request, case_number=None):
         resp = fogbugz_instance.search(q=case_number, cols='tags')
     else:
         resp = fogbugz_instance.listTags()
-    return [
+    return sorted(
         tag for tag in (tg.find('stag').text.strip() for tg in resp.findAll('tag'))
-        if request.REQUEST.get('term', '').lower() in tag.lower()]
+        if request.REQUEST.get('term', '').lower() in tag.lower())
 
 
 def get_issue(request, case_number, case_title):
