@@ -361,6 +361,7 @@ def get_fogbugz_assignees(request, case_number):
 
 
 def fogbugz_assign_case(request, case_number, target, message, tags):
+    """Assign a fogbugz case."""
     fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.fogbugzprofile.token)
     fogbugz_instance.assign(ixBug=case_number, ixPersonAssignedTo=target, sEvent=message, sTags=','.join(tags))
 
@@ -373,7 +374,7 @@ def get_fogbugz_tags(request, case_number=None):
     else:
         resp = fogbugz_instance.listTags()
     return [
-        tag.text for tag in resp.findAll('tag')
+        tag.text.strip() for tag in resp.findAll('tag')
         if request.REQUEST.get('term', '').lower() in tag.text.lower()]
 
 
