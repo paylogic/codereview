@@ -2,8 +2,6 @@
 import BeautifulSoup
 import json
 
-import pytest
-
 
 def test_case_assigned(app, case_id, mocked_fogbugz):
     """Test case assigned lookup used for gatekeeper approval form."""
@@ -42,9 +40,27 @@ def test_case_tags(app, case_id, mocked_fogbugz):
     mocked_fogbugz_instance = mocked_fogbugz.return_value
     mocked_fogbugz_instance.listTags.return_value = BeautifulSoup.BeautifulSoup("""
     <tags>
-      <tag><![CDATA[first]]></tag>
-      <tag><![CDATA[second]]></tag>
-      <tag><![CDATA[third]]></tag>
+      <tag>
+        <ixTag>4</ixTag>
+        <sTag>
+        <![CDATA[ first ]]>
+        </sTag>
+        <cTagUses>1</cTagUses>
+      </tag>
+      <tag>
+        <ixTag>5</ixTag>
+        <sTag>
+        <![CDATA[ second ]]>
+        </sTag>
+        <cTagUses>1</cTagUses>
+      </tag>
+      <tag>
+        <ixTag>7</ixTag>
+        <sTag>
+        <![CDATA[ third ]]>
+        </sTag>
+        <cTagUses>1</cTagUses>
+      </tag>
     </tags>
     """)
 

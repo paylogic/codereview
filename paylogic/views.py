@@ -371,10 +371,12 @@ def get_fogbugz_tags(request, case_number=None):
     fogbugz_instance = fogbugz.FogBugz(settings.FOGBUGZ_URL, token=request.user.fogbugzprofile.token)
     if case_number:
         resp = fogbugz_instance.search(q=case_number, cols='tags')
+        resp = (tg.text.strip() for tg in resp.find('tags').findAll('tag'))
     else:
         resp = fogbugz_instance.listTags()
+        resp = (getattr(tg.find('stag'), 'text', '').strip() for tg in resp.findAll('tag'))
     return sorted(
-        tag for tag in (getattr(tg.find('stag'), 'text', '').strip() for tg in resp.findAll('tag'))
+        tag for tag in resp
         if request.REQUEST.get('term', '').lower() in tag.lower())
 
 
