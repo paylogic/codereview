@@ -12,6 +12,5 @@ pytest-pep8==1.0.5
 WebTest==1.4.3
 
 # eggs which are not yet on public indexes
-https://bubenkoff-gae2django.googlecode.com/archive/urlquote-login-urls.tar.gz
 bzr+lp:~bubenkoff/django-openid-auth/paylogic
 https://github.com/paylogic/python-openid/archive/google.zip
