@@ -2,12 +2,12 @@ WHEEL_DIR=$(HOME)/.pip/wheels
 DOWNLOAD_CACHE_DIR=$(HOME)/.pip/downloads
 SHELL := /bin/bash
 PATH := $(PWD)/env/bin:$(PATH)
-python_version := 2.6
+python_version := 2.7
 cov_report := html
 index_url := https://pypi.python.org/simple/
 extra_index_url := $(index_url)
 wheel_args := --use-wheel
-pip_args := $(wheel_args) --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external --download-cache "$(DOWNLOAD_CACHE_DIR)"
+pip_args := $(wheel_args) --index-url=$(index_url) --extra-index-url=$(extra_index_url) --allow-all-external
 
 .PHONY: test clean
 

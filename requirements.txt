@@ -1,2 +1,2 @@
 -r requirements-public.txt
-django-gae2django==0.2paylogic2
+git+https://github.com/bubenkoff/bubenkoff-gae2django
