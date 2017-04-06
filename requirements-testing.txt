@@ -1,6 +1,7 @@
 -r requirements-public.txt
 
 django-webtest==1.6.1
+git+https://github.com/bubenkoff/bubenkoff-gae2django
 importlib==1.0.3
 mock==1.0.1
 pyquery==1.2.4
